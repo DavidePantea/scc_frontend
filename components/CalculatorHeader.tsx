@@ -1,12 +1,10 @@
 'use client';
 
-const STEPS = ['Vehiculul tău', 'Utilizare anuală', 'Comparație costuri', 'Rezultatul tău'];
-
 export default function CalculatorHeader() {
   return (
     <div className="relative w-full pt-16 pb-40 lg:pt-24 lg:pb-48 overflow-hidden bg-[#F8FAFC]">
       
-      {/* 1. Background Image - Fully visible (removed opacity and dark background) */}
+      {/* 1. Background Image - Fully visible */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center"
         style={{ backgroundImage: "url('/banner.jpg')" }} 
@@ -32,31 +30,6 @@ export default function CalculatorHeader() {
             Compară costul total de utilizare și descoperă cât de avantajos este
             să conduci un vehicul nou.
           </p>
-
-          {/* Step indicator */}
-          <div className="mt-10 overflow-x-auto pb-4 hide-scrollbar">
-            <ol className="flex min-w-max gap-x-6 text-sm">
-              {STEPS.map((step, i) => (
-                <li key={step} className="flex items-center gap-3">
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold shadow-sm ${
-                      i === 0
-                        ? 'bg-[#2563EB] text-white ring-2 ring-[#2563EB] ring-offset-2 ring-offset-black/40'
-                        : 'bg-white/20 text-white border border-white/40 backdrop-blur-sm'
-                    }`}
-                  >
-                    {i + 1}
-                  </span>
-                  <span className={i === 0 ? 'font-semibold text-white drop-shadow-md' : 'font-medium text-white/90 drop-shadow-md'}>
-                    {step}
-                  </span>
-                  {i < STEPS.length - 1 && (
-                    <div className="ml-4 h-[1px] w-8 bg-white/40 hidden sm:block" />
-                  )}
-                </li>
-              ))}
-            </ol>
-          </div>
         </header>
       </div>
     </div>
