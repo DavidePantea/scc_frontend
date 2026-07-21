@@ -1,6 +1,6 @@
 'use client';
 
-import { formatMoney } from '@/lib/calculator-logic';
+import { formatMoney } from '../lib/calculator-logic';
 
 interface CalculatorFooterProps {
   savings: number;
