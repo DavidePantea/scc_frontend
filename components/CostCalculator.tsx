@@ -15,7 +15,7 @@ interface VehicleInput {
   mileageKm: number;
   fuelType: FuelType;
   annualKm: number;
-  fuelPrice: number; // per liter / per kWh
+  fuelPrice: number;
 }
 
 interface CostBreakdown {
@@ -27,13 +27,10 @@ interface CostBreakdown {
   depreciation: number;
 }
 
-// Currency label — change this one constant to localize.
 const CURRENCY = '$';
 
-// Reference vehicle the calculator compares against.
-// This is placeholder data — swap for a real catalog / API response later.
 const REFERENCE_VEHICLE = {
-  name: 'New Reference Model',
+  name: 'New Smart Model',
   costs: {
     fuel: 1200,
     maintenance: 350,
@@ -44,12 +41,11 @@ const REFERENCE_VEHICLE = {
   } as CostBreakdown,
 };
 
-// Rough fuel consumption assumptions (liters or kWh per 100 km).
 const CONSUMPTION: Record<FuelType, number> = {
   petrol: 7.5,
   diesel: 6.2,
   hybrid: 4.8,
-  electric: 18, // kWh/100km
+  electric: 18,
 };
 
 const FUEL_LABELS: Record<FuelType, string> = {
@@ -60,24 +56,20 @@ const FUEL_LABELS: Record<FuelType, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Placeholder cost model — replace with a real API call later.
-// Kept simple and transparent so it's easy to swap out.
+// Logic
 // ---------------------------------------------------------------------------
 
 function estimateCurrentVehicleCosts(input: VehicleInput): CostBreakdown {
   const age = Math.max(0, new Date().getFullYear() - input.year);
-  const ageFactor = 1 + age * 0.06; // older cars cost more to run
+  const ageFactor = 1 + age * 0.06;
   const mileageFactor = 1 + input.mileageKm / 200_000;
 
-  const fuel =
-    (input.annualKm / 100) * CONSUMPTION[input.fuelType] * input.fuelPrice;
-
+  const fuel = (input.annualKm / 100) * CONSUMPTION[input.fuelType] * input.fuelPrice;
   const maintenance = 250 * ageFactor * mileageFactor;
   const repairs = 150 * ageFactor * mileageFactor * 1.4;
   const insurance = 500 * (1 + age * 0.01);
   const taxes = 200 * (1 + age * 0.02);
 
-  // Depreciation eases off as the car gets older.
   const estimatedValue = Math.max(2000, 25000 - age * 1800 - input.mileageKm * 0.03);
   const depreciation = estimatedValue * 0.12;
 
@@ -124,220 +116,267 @@ export default function CostCalculator() {
   const savings = currentTotal - referenceTotal;
   const monthlySavings = savings / 12;
 
+  // Calculate maximum cost across all categories for dynamic bar chart scaling
+  const maxCategoryCost = Math.max(
+    ...Object.values(currentCosts),
+    ...Object.values(REFERENCE_VEHICLE.costs)
+  );
+
   function update<K extends keyof VehicleInput>(key: K, value: VehicleInput[K]) {
     setInput((prev) => ({ ...prev, [key]: value }));
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <div 
+      className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-20"
+      style={{ fontFamily: 'Inter, sans-serif' }}
+    >
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Cost of ownership calculator
+        <header className="mb-10 text-center lg:text-left">
+          <h1 
+            className="text-3xl font-bold tracking-tight sm:text-4xl text-[#0F172A]"
+            style={{ fontFamily: 'Montserrat, sans-serif' }}
+          >
+            Cost of Ownership Calculator
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-500">
+          <p className="mt-3 max-w-2xl text-base text-[#0F172A]/70 mx-auto lg:mx-0">
             Compare what your current car costs you each year against a new
             reference model, and see how much you could save.
           </p>
         </header>
 
         {/* Step indicator */}
-        <ol className="mb-8 flex flex-wrap gap-x-6 gap-y-3 text-sm">
-          {STEPS.map((step, i) => (
-            <li key={step} className="flex items-center gap-2 text-slate-500">
-              <span
-                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
-                  i === 0
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
+        <div className="mb-10 overflow-x-auto pb-4 hide-scrollbar">
+          <ol className="flex min-w-max gap-x-6 text-sm">
+            {STEPS.map((step, i) => (
+              <li key={step} className="flex items-center gap-3">
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold shadow-sm ${
+                    i === 0
+                      ? 'bg-[#2563EB] text-white'
+                      : 'bg-white text-[#0F172A]/50 border border-gray-200'
+                  }`}
+                >
+                  {i + 1}
+                </span>
+                <span className={i === 0 ? 'font-semibold text-[#0F172A]' : 'font-medium text-[#0F172A]/50'}>
+                  {step}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <div className="ml-4 h-[1px] w-8 bg-gray-200 hidden sm:block" />
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Main layout */}
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+          
+          {/* Column 1: Inputs */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+              <h2 
+                className="mb-6 text-lg font-semibold text-[#0F172A]"
+                style={{ fontFamily: 'Montserrat, sans-serif' }}
               >
-                {i + 1}
-              </span>
-              <span className={i === 0 ? 'font-medium text-slate-900' : ''}>
-                {step}
-              </span>
-            </li>
-          ))}
-        </ol>
+                1. Your Current Vehicle
+              </h2>
 
-        {/* Main grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.3fr_1fr]">
-          {/* Panel 1 — vehicle form */}
-          <section className="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              1. Your current vehicle
-            </h2>
-
-            <div className="space-y-4">
-              <Field label="Make">
-                <input
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.make}
-                  onChange={(e) => update('make', e.target.value)}
-                  placeholder="e.g. BMW"
-                />
-              </Field>
-
-              <Field label="Model">
-                <input
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.model}
-                  onChange={(e) => update('model', e.target.value)}
-                  placeholder="e.g. X5"
-                />
-              </Field>
-
-              <Field label="Year">
-                <input
-                  type="number"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.year}
-                  onChange={(e) => update('year', Number(e.target.value))}
-                />
-              </Field>
-
-              <Field label="Current mileage (km)">
-                <input
-                  type="number"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.mileageKm}
-                  onChange={(e) => update('mileageKm', Number(e.target.value))}
-                />
-              </Field>
-
-              <Field label="Fuel type">
-                <select
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.fuelType}
-                  onChange={(e) => update('fuelType', e.target.value as FuelType)}
-                >
-                  {Object.entries(FUEL_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <hr className="border-slate-100" />
-
-              <Field label="Annual distance (km/year)">
-                <input
-                  type="number"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.annualKm}
-                  onChange={(e) => update('annualKm', Number(e.target.value))}
-                />
-              </Field>
-
-              <Field label={`Fuel / energy price (${CURRENCY} per liter or kWh)`}>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  value={input.fuelPrice}
-                  onChange={(e) => update('fuelPrice', Number(e.target.value))}
-                />
-              </Field>
-            </div>
-
-            <div className="mt-6 rounded-md bg-slate-50 p-4 text-center">
-              <p className="text-xs text-slate-500">Estimated monthly cost</p>
-              <p className="text-xl font-semibold">
-                {formatMoney(currentTotal / 12)}
-              </p>
-              <p className="text-xs text-slate-400">
-                {formatMoney(currentTotal)} total per year
-              </p>
-            </div>
-          </section>
-
-          {/* Panel 2 — comparison table */}
-          <section className="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              2. Cost comparison
-            </h2>
-
-            <div className="mb-4 grid grid-cols-2 gap-2 text-sm font-medium text-slate-600">
-              <span>Your car</span>
-              <span className="text-right">{REFERENCE_VEHICLE.name}</span>
-            </div>
-
-            <div className="divide-y divide-slate-100">
-              {ROW_LABELS.map(({ key, label }) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between py-2.5 text-sm"
-                >
-                  <span className="text-slate-500">{label}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="w-24 text-right tabular-nums">
-                      {formatMoney(currentCosts[key])}
-                    </span>
-                    <span className="text-slate-300">&rarr;</span>
-                    <span className="w-24 text-right tabular-nums text-emerald-700">
-                      {formatMoney(REFERENCE_VEHICLE.costs[key])}
-                    </span>
-                  </div>
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Make">
+                    <input
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                      value={input.make}
+                      onChange={(e) => update('make', e.target.value)}
+                      placeholder="e.g. BMW"
+                    />
+                  </Field>
+                  <Field label="Model">
+                    <input
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                      value={input.model}
+                      onChange={(e) => update('model', e.target.value)}
+                      placeholder="e.g. X5"
+                    />
+                  </Field>
                 </div>
-              ))}
-            </div>
 
-            <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-sm font-semibold">
-              <span>Total annual cost</span>
-              <div className="flex items-center gap-3">
-                <span className="w-24 text-right tabular-nums">
-                  {formatMoney(currentTotal)}
-                </span>
-                <span className="text-slate-300">&rarr;</span>
-                <span className="w-24 text-right tabular-nums text-emerald-700">
-                  {formatMoney(referenceTotal)}
-                </span>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Year">
+                    <input
+                      type="number"
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                      value={input.year}
+                      onChange={(e) => update('year', Number(e.target.value))}
+                    />
+                  </Field>
+                  <Field label="Mileage (km)">
+                    <input
+                      type="number"
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                      value={input.mileageKm}
+                      onChange={(e) => update('mileageKm', Number(e.target.value))}
+                    />
+                  </Field>
+                </div>
+
+                <Field label="Fuel Type">
+                  <select
+                    className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                    value={input.fuelType}
+                    onChange={(e) => update('fuelType', e.target.value as FuelType)}
+                  >
+                    {Object.entries(FUEL_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <div className="my-6 border-t border-gray-100" />
+
+                <Field label="Annual Distance (km/year)">
+                  <input
+                    type="number"
+                    className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                    value={input.annualKm}
+                    onChange={(e) => update('annualKm', Number(e.target.value))}
+                  />
+                </Field>
+
+                <Field label={`Fuel Price (${CURRENCY} per L/kWh)`}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
+                    value={input.fuelPrice}
+                    onChange={(e) => update('fuelPrice', Number(e.target.value))}
+                  />
+                </Field>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
 
-          {/* Panel 3 — result */}
-          <section className="rounded-lg border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              3. Your result
-            </h2>
-
-            <div className="rounded-md bg-emerald-50 p-4">
-              <p className="text-xs font-medium text-emerald-700">
-                Estimated yearly savings
-              </p>
-              <p className="mt-1 text-2xl font-semibold text-emerald-700">
-                {formatMoney(Math.max(0, savings))}
-              </p>
-              <p className="text-xs text-emerald-600">
-                about {formatMoney(Math.max(0, monthlySavings))} / month
-              </p>
-            </div>
-
-            <ul className="mt-5 space-y-2 text-sm text-slate-600">
-              <li>&bull; Lower running costs across fuel and upkeep</li>
-              <li>&bull; More predictable maintenance and repair bills</li>
-              <li>&bull; Better resale value retention</li>
-            </ul>
-
-            <div className="mt-6 space-y-2">
-              <button
-                type="button"
-                className="w-full rounded-md bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
+          {/* Column 2: Data Visualization Comparison */}
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm h-full">
+              <h2 
+                className="mb-6 text-lg font-semibold text-[#0F172A]"
+                style={{ fontFamily: 'Montserrat, sans-serif' }}
               >
-                Get a personalized quote
-              </button>
-              <button
-                type="button"
-                className="w-full rounded-md border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                2. Data Visualization
+              </h2>
+
+              <div className="flex justify-between items-end mb-6 pb-4 border-b border-gray-100">
+                <div className="text-sm font-semibold text-[#0F172A]/60">Your Car</div>
+                <div className="text-sm font-semibold text-[#2563EB]">New Reference</div>
+              </div>
+
+              <div className="space-y-6">
+                {ROW_LABELS.map(({ key, label }) => (
+                  <div key={key} className="flex flex-col gap-2">
+                    <div className="text-sm font-medium text-[#0F172A]">{label}</div>
+                    
+                    {/* Visual Bar Charts */}
+                    <div className="grid grid-cols-2 gap-4 items-center">
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="text-xs font-semibold text-[#0F172A]">
+                          {formatMoney(currentCosts[key])}
+                        </span>
+                        <div className="w-full bg-[#F8FAFC] h-2.5 rounded-full overflow-hidden flex justify-end">
+                          <div 
+                            className="bg-[#0F172A] h-full rounded-full transition-all duration-500" 
+                            style={{ width: `${(currentCosts[key] / maxCategoryCost) * 100}%` }} 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-start gap-1.5">
+                        <span className="text-xs font-semibold text-[#2563EB]">
+                          {formatMoney(REFERENCE_VEHICLE.costs[key])}
+                        </span>
+                        <div className="w-full bg-[#F8FAFC] h-2.5 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-[#2563EB] h-full rounded-full transition-all duration-500" 
+                            style={{ width: `${(REFERENCE_VEHICLE.costs[key] / maxCategoryCost) * 100}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-2 gap-4">
+                 <div className="flex flex-col items-end">
+                   <span className="text-xs font-medium text-[#0F172A]/60 uppercase tracking-wider mb-1">Total Annual</span>
+                   <span className="text-xl font-bold text-[#0F172A]">{formatMoney(currentTotal)}</span>
+                 </div>
+                 <div className="flex flex-col items-start">
+                   <span className="text-xs font-medium text-[#0F172A]/60 uppercase tracking-wider mb-1">Total Annual</span>
+                   <span className="text-xl font-bold text-[#2563EB]">{formatMoney(referenceTotal)}</span>
+                 </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Column 3: Results & CTA */}
+          <div className="lg:col-span-3 flex flex-col gap-6">
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+              <h2 
+                className="mb-6 text-lg font-semibold text-[#0F172A]"
+                style={{ fontFamily: 'Montserrat, sans-serif' }}
               >
-                Download this comparison
-              </button>
-            </div>
-          </section>
+                3. Your Result
+              </h2>
+
+              <div className="rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/5 p-5 text-center mb-6">
+                <p className="text-sm font-semibold text-[#2563EB] mb-2 uppercase tracking-wide">
+                  Estimated Savings
+                </p>
+                <p 
+                  className="text-4xl font-bold text-[#2563EB] tracking-tight"
+                  style={{ fontFamily: 'Montserrat, sans-serif' }}
+                >
+                  {formatMoney(Math.max(0, savings))}
+                </p>
+                <p className="mt-2 text-sm font-medium text-[#2563EB]/80">
+                  per year (approx. {formatMoney(Math.max(0, monthlySavings))} / mo)
+                </p>
+              </div>
+
+              <ul className="mb-8 space-y-3 text-sm text-[#0F172A]/80 font-medium">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F97316] mt-0.5">✓</span> Lower running costs across fuel
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F97316] mt-0.5">✓</span> Predictable maintenance bills
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#F97316] mt-0.5">✓</span> Better resale value retention
+                </li>
+              </ul>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  className="w-full rounded-xl bg-[#F97316] px-5 py-4 text-sm font-bold text-white shadow-sm hover:bg-[#EA580C] transition-colors focus:ring-4 focus:ring-[#F97316]/20 outline-none"
+                >
+                  Compare Models Now
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-xl border-2 border-[#0F172A]/10 bg-transparent px-5 py-3.5 text-sm font-bold text-[#0F172A] hover:bg-[#F8FAFC] transition-colors outline-none"
+                >
+                  View Full Costs
+                </button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>
@@ -345,13 +384,13 @@ export default function CostCalculator() {
 }
 
 // ---------------------------------------------------------------------------
-// Small field wrapper
+// Helpers
 // ---------------------------------------------------------------------------
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-500">
+    <label className="block w-full">
+      <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#0F172A]/60">
         {label}
       </span>
       {children}
