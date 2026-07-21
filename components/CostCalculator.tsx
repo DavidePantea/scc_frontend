@@ -13,7 +13,7 @@ import {
   FUEL_LABELS, 
   ROW_LABELS,
   CURRENCY
-} from '@/lib/calculator-logic';
+} from '../lib/calculator-logic';
 
 export default function CostCalculator() {
   const [input, setInput] = useState<VehicleInput>({
