@@ -46,10 +46,13 @@ export default function CostCalculator() {
       className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-20"
       style={{ fontFamily: 'Inter, sans-serif' }}
     >
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-        
-        <CalculatorHeader />
+      {/* 1. Header is placed outside any max-width wrappers so it goes edge-to-edge */}
+      <CalculatorHeader />
 
+      {/* 2. Main Grid Container - pulled UP over the banner with negative margin */}
+      {/* The relative and z-30 ensure the cards float visually above the image */}
+      <div className="relative z-30 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-32">
+        
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
           
           {/* Column 1: Inputs */}
