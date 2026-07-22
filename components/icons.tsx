@@ -86,3 +86,11 @@ export function CheckCircleIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function LoaderIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M12 3a9 9 0 1 0 9 9" />
+    </svg>
+  );
+}

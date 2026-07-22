@@ -1,75 +1,64 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import CalculatorHeader from './CalculatorHeader';
 import CalculatorFooter from './CalculatorFooter';
-import {
-  FuelPumpIcon,
-  WrenchIcon,
-  AlertIcon,
-  ShieldIcon,
-  ReceiptIcon,
-  PriceTagIcon,
-  ScaleIcon,
-} from './icons';
-import {
-  VehicleInput,
-  FuelType,
-  CostBreakdown,
-  estimateCurrentVehicleCosts,
-  total,
-  formatMoney,
-  REFERENCE_VEHICLE,
-  FUEL_LABELS,
-  ROW_LABELS,
-  DEFAULT_FUEL_PRICE,
-} from '../lib/calculator-logic';
+import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
+import { FuelType, FUEL_LABELS } from '../lib/calculator-logic';
+import { fetchCostEstimate, EstimateOutput } from '../lib/api';
 
-const ROW_ICONS: Record<keyof CostBreakdown, React.ComponentType<{ className?: string }>> = {
-  fuel: FuelPumpIcon,
-  maintenance: WrenchIcon,
-  repairs: AlertIcon,
-  insurance: ShieldIcon,
-  taxes: ReceiptIcon,
-  depreciation: PriceTagIcon,
-};
+interface FormState {
+  make: string;
+  model: string;
+  year: number;
+  km: number;
+  fuel: FuelType;
+}
+
+type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export default function CostCalculator() {
-  const [input, setInput] = useState<VehicleInput>({
+  const [form, setForm] = useState<FormState>({
     make: '',
     model: '',
     year: 2016,
-    mileageKm: 150_000,
-    fuelType: 'diesel',
-    annualKm: 15_000,
-    fuelPrice: 7.2, 
+    km: 150_000,
+    fuel: 'diesel',
   });
+  const [status, setStatus] = useState<Status>('idle');
+  const [result, setResult] = useState<EstimateOutput | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const currentCosts = useMemo(() => estimateCurrentVehicleCosts(input), [input]);
-  const currentTotal = total(currentCosts);
-  const referenceTotal = total(REFERENCE_VEHICLE.costs);
-  const savings = currentTotal - referenceTotal;
-  const monthlySavings = savings / 12;
-
-  const maxCategoryCost = Math.max(
-    ...Object.values(currentCosts),
-    ...Object.values(REFERENCE_VEHICLE.costs)
-  );
-
-  function update<K extends keyof VehicleInput>(key: K, value: VehicleInput[K]) {
-    setInput((prev) => ({ ...prev, [key]: value }));
+  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function updateFuelType(fuelType: FuelType) {
-    setInput((prev) => ({ ...prev, fuelType, fuelPrice: DEFAULT_FUEL_PRICE[fuelType] }));
-  }
-
-  function updateNumber<K extends keyof VehicleInput>(key: K, raw: string, fallback: number) {
+  function updateNumber<K extends 'year' | 'km'>(key: K, raw: string, fallback: number) {
     const parsed = Number(raw);
-    update(key, (raw === '' || Number.isNaN(parsed) ? fallback : parsed) as VehicleInput[K]);
+    update(key, (raw === '' || Number.isNaN(parsed) ? fallback : parsed) as FormState[K]);
   }
 
-  const isElectric = input.fuelType === 'electric';
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus('loading');
+    setErrorMessage(null);
+    setResult(null);
+
+    try {
+      const output = await fetchCostEstimate({
+        make: form.make.trim(),
+        model: form.model.trim(),
+        year: form.year,
+        km: form.km,
+        fuel: form.fuel,
+      });
+      setResult(output);
+      setStatus('success');
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'A apărut o eroare neașteptată. Te rugăm să încerci din nou.');
+      setStatus('error');
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-20">
@@ -84,144 +73,162 @@ export default function CostCalculator() {
 
           {/* Column 1: Inputs */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-              <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
-                1. Vehiculul tău actual
-              </h2>
-              <p className="mb-6 text-sm text-[#0F172A]/60">
-                Completează detaliile de mai jos ca să vedem cât te costă cu adevărat mașina ta.
-              </p>
-              <div className="space-y-5">
-                <Field label="Marcă și model">
-                  <input
-                    className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    value={input.make}
-                    onChange={(e) => update('make', e.target.value)}
-                    placeholder="ex. BMW X5"
-                  />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="An fabricație">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={1990}
-                      max={new Date().getFullYear()}
+            <form onSubmit={handleSubmit}>
+              <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+                <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
+                  1. Vehiculul tău actual
+                </h2>
+                <p className="mb-6 text-sm text-[#0F172A]/60">
+                  Completează detaliile de mai jos ca să vedem cât te costă cu adevărat mașina ta.
+                </p>
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Marcă">
+                      <input
+                        required
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.make}
+                        onChange={(e) => update('make', e.target.value)}
+                        placeholder="ex. BMW"
+                      />
+                    </Field>
+                    <Field label="Model">
+                      <input
+                        required
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.model}
+                        onChange={(e) => update('model', e.target.value)}
+                        placeholder="ex. X5"
+                      />
+                    </Field>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="An fabricație">
+                      <input
+                        required
+                        type="number"
+                        inputMode="numeric"
+                        min={1990}
+                        max={new Date().getFullYear()}
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.year}
+                        onChange={(e) => updateNumber('year', e.target.value, form.year)}
+                      />
+                    </Field>
+                    <Field label="Kilometraj (km)">
+                      <input
+                        required
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1000}
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.km}
+                        onChange={(e) => updateNumber('km', e.target.value, form.km)}
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Tip combustibil">
+                    <select
+                      required
                       className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                      value={input.year}
-                      onChange={(e) => updateNumber('year', e.target.value, input.year)}
-                    />
-                  </Field>
-                  <Field label="Kilometraj (km)">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      step={1000}
-                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                      value={input.mileageKm}
-                      onChange={(e) => updateNumber('mileageKm', e.target.value, input.mileageKm)}
-                    />
-                  </Field>
-                </div>
-                <Field label="Tip combustibil">
-                  <select
-                    className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                    value={input.fuelType}
-                    onChange={(e) => updateFuelType(e.target.value as FuelType)}
-                  >
-                    {Object.entries(FUEL_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
-                  </select>
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Km parcurși / an">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      step={500}
-                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                      value={input.annualKm}
-                      onChange={(e) => updateNumber('annualKm', e.target.value, input.annualKm)}
-                    />
-                  </Field>
-                  <Field label={isElectric ? 'Preț energie (lei/kWh)' : 'Preț combustibil (lei/l)'}>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      min={0}
-                      step={0.1}
-                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                      value={input.fuelPrice}
-                      onChange={(e) => updateNumber('fuelPrice', e.target.value, input.fuelPrice)}
-                    />
+                      value={form.fuel}
+                      onChange={(e) => update('fuel', e.target.value as FuelType)}
+                    >
+                      {Object.entries(FUEL_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
                   </Field>
                 </div>
-              </div>
-            </section>
+
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {status === 'loading' && <LoaderIcon className="h-4 w-4 animate-spin" />}
+                  {status === 'loading' ? 'Se calculează...' : 'Calculează estimarea'}
+                </button>
+              </section>
+            </form>
           </div>
 
-          {/* Column 2: Data Visualization Comparison */}
+          {/* Column 2: Estimate details */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm h-full">
               <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
-                2. Comparație Costuri
+                2. Analiza Estimării
               </h2>
 
-              <div className="flex justify-between items-end mb-6 pb-4 border-b border-gray-100">
-                <div className="text-sm font-semibold text-[#0F172A]/60">Mașina ta actuală</div>
-                <div className="text-sm font-semibold text-[#2563EB]">{REFERENCE_VEHICLE.name}</div>
-              </div>
+              {status === 'idle' && (
+                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                  <ScaleIcon className="h-8 w-8 text-[#0F172A]/20" />
+                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                    Completează detaliile mașinii tale și apasă „Calculează estimarea&rdquo; pentru a vedea analiza completă.
+                  </p>
+                </div>
+              )}
 
-              <div className="space-y-6">
-                {ROW_LABELS.map(({ key, label }) => {
-                  const Icon = ROW_ICONS[key];
-                  return (
-                  <div key={key} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-[#0F172A]">
-                      <Icon className="h-4 w-4 shrink-0 text-[#0F172A]/50" />
-                      {label}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className="text-xs font-semibold text-[#0F172A]">{formatMoney(currentCosts[key])}</span>
-                        <div className="w-full bg-[#F8FAFC] h-2.5 rounded-full overflow-hidden flex justify-end">
-                          <div className="bg-[#0F172A] h-full rounded-full transition-all duration-500" style={{ width: `${(currentCosts[key] / maxCategoryCost) * 100}%` }} />
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-start gap-1.5">
-                        <span className="text-xs font-semibold text-[#2563EB]">{formatMoney(REFERENCE_VEHICLE.costs[key])}</span>
-                        <div className="w-full bg-[#F8FAFC] h-2.5 rounded-full overflow-hidden">
-                          <div className="bg-[#2563EB] h-full rounded-full transition-all duration-500" style={{ width: `${(REFERENCE_VEHICLE.costs[key] / maxCategoryCost) * 100}%` }} />
-                        </div>
-                      </div>
-                    </div>
+              {status === 'loading' && (
+                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                  <LoaderIcon className="h-8 w-8 animate-spin text-[#2563EB]" />
+                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                    Se generează estimarea ta. Poate dura câteva secunde.
+                  </p>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
+                  <AlertIcon className="h-8 w-8 text-red-500" />
+                  <p className="max-w-xs text-sm font-semibold text-red-700">
+                    {errorMessage}
+                  </p>
+                </div>
+              )}
+
+              {status === 'success' && result && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="mb-3 text-sm font-semibold text-[#0F172A]">
+                      Ce trebuie să știi
+                    </h3>
+                    {result.issue_list.length > 0 ? (
+                      <ul className="space-y-2.5">
+                        {result.issue_list.map((issue, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm text-[#0F172A]/80">
+                            <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                            {issue}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-[#0F172A]/60">
+                        Nu au fost identificate costuri neprevăzute notabile.
+                      </p>
+                    )}
                   </div>
-                  );
-                })}
-              </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-2 gap-4">
-                 <div className="flex flex-col items-end">
-                   <span className="text-xs font-medium text-[#0F172A]/60 uppercase tracking-wider mb-1">Cost Total</span>
-                   <span className="text-xl font-bold text-[#0F172A]">{formatMoney(currentTotal)}</span>
-                 </div>
-                 <div className="flex flex-col items-start">
-                   <span className="text-xs font-medium text-[#0F172A]/60 uppercase tracking-wider mb-1">Cost Total</span>
-                   <span className="text-xl font-bold text-[#2563EB]">{formatMoney(referenceTotal)}</span>
-                 </div>
-              </div>
+                  <div className="pt-4 border-t border-gray-100">
+                    <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
+                      Detalii
+                    </h3>
+                    <p className="text-sm leading-relaxed text-[#0F172A]/70">
+                      {result.Details}
+                    </p>
+                  </div>
+                </div>
+              )}
             </section>
           </div>
 
           {/* Column 3: Results & CTA */}
           <div className="lg:col-span-3 flex flex-col gap-6">
-            <CalculatorFooter savings={savings} monthlySavings={monthlySavings} />
+            <CalculatorFooter result={result} />
           </div>
-          
+
         </div>
       </div>
     </div>
