@@ -168,7 +168,7 @@ export default function CostCalculator() {
           </div>
 
           {/* Column 2: Estimate details */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
+          <div className="lg:col-span-8 flex flex-col gap-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm h-full">
               <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
@@ -215,7 +215,7 @@ export default function CostCalculator() {
                       <h3 className="mb-3 text-sm font-semibold text-[#0F172A]">
                         Probleme frecvente {result.engine.motor_type && `· ${result.engine.motor_type}`}
                       </h3>
-                      <ul className="space-y-3">
+                      <ul className="max-h-72 space-y-3 overflow-y-auto pr-1">
                         {result.engine.common_problems.map((problem, idx) => (
                           <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
                             <div className="flex items-start justify-between gap-2">
@@ -256,8 +256,8 @@ export default function CostCalculator() {
             </section>
           </div>
 
-          {/* Column 3: Results & CTA */}
-          <div className="lg:col-span-3 flex flex-col gap-6">
+          {/* Full-width result banner, always at the base */}
+          <div className="lg:col-span-12">
             <CalculatorFooter result={result} />
           </div>
 
