@@ -167,9 +167,9 @@ export default function CostCalculator() {
             </form>
           </div>
 
-          {/* Column 2: Estimate details */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm h-full">
+          {/* Column 2: Cost breakdown */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <section className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
               <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
                 2. Analiza Estimării
@@ -210,37 +210,6 @@ export default function CostCalculator() {
                     period={result.cost_period}
                   />
 
-                  {result.engine.common_problems.length > 0 && (
-                    <div className="pt-5 border-t border-gray-100">
-                      <h3 className="mb-3 text-sm font-semibold text-[#0F172A]">
-                        Probleme frecvente {result.engine.motor_type && `· ${result.engine.motor_type}`}
-                      </h3>
-                      <ul className="max-h-72 space-y-3 overflow-y-auto pr-1">
-                        {result.engine.common_problems.map((problem, idx) => (
-                          <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-start gap-2">
-                                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
-                                <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
-                              </div>
-                              <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
-                                {SEVERITY_LABELS[problem.severity] ?? problem.severity}
-                              </span>
-                            </div>
-                            {problem.description && (
-                              <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
-                            )}
-                            {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
-                              <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
-                                {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
-                              </p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
                   {result.summary && (
                     <div className="pt-5 border-t border-gray-100">
                       <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
@@ -252,6 +221,83 @@ export default function CostCalculator() {
                     </div>
                   )}
                 </div>
+              )}
+            </section>
+          </div>
+
+          {/* Column 3: Common problems, scrollable */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[34rem]">
+              <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
+                <AlertIcon className="h-5 w-5 text-[#F97316]" />
+                Probleme frecvente
+              </h2>
+              {status === 'success' && result?.engine.motor_type && (
+                <p className="mb-5 text-sm text-[#0F172A]/50">{result.engine.motor_type}</p>
+              )}
+
+              {status === 'idle' && (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                  <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
+                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                    Problemele frecvente ale motorului vor apărea aici după calcularea estimării.
+                  </p>
+                </div>
+              )}
+
+              {status === 'loading' && (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                  <LoaderIcon className="h-8 w-8 animate-spin text-[#2563EB]" />
+                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                    Se identifică problemele frecvente...
+                  </p>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                  <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
+                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                    Analiza nu a putut fi generată.
+                  </p>
+                </div>
+              )}
+
+              {status === 'success' && result && (
+                result.engine.common_problems.length > 0 ? (
+                  <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                    <ul className="space-y-3">
+                      {result.engine.common_problems.map((problem, idx) => (
+                        <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-2">
+                              <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                              <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
+                            </div>
+                            <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
+                              {SEVERITY_LABELS[problem.severity] ?? problem.severity}
+                            </span>
+                          </div>
+                          {problem.description && (
+                            <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
+                          )}
+                          {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
+                            <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
+                              {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                    <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
+                    <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                      Nu au fost identificate probleme frecvente notabile.
+                    </p>
+                  </div>
+                )
               )}
             </section>
           </div>
