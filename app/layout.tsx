@@ -18,6 +18,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SmartCarCompare",
   description: "Compară costul total de utilizare și descoperă cât de avantajos este să conduci un vehicul nou.",
+  verification: {
+    google: "P37NoUlD80XBLksPar0dvjFxLT2ZX-vaSwAv8onl3_A",
+  },
 };
 
 export default function RootLayout({
