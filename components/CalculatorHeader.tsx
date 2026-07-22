@@ -19,10 +19,7 @@ export default function CalculatorHeader() {
       {/* Content Container */}
       <div className="relative z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <header className="text-center lg:text-left">
-          <h1 
-            className="text-3xl font-bold tracking-tight sm:text-5xl text-white drop-shadow-lg"
-            style={{ fontFamily: 'Montserrat, sans-serif' }}
-          >
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-5xl text-white drop-shadow-lg">
             DE LA SECOND-HAND <br className="hidden sm:block" />
             <span className="text-[#2563EB]">LA SMART CHOICE</span>
           </h1>

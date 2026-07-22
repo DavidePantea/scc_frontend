@@ -3,17 +3,36 @@
 import { useMemo, useState } from 'react';
 import CalculatorHeader from './CalculatorHeader';
 import CalculatorFooter from './CalculatorFooter';
-import { 
-  VehicleInput, 
-  FuelType, 
-  estimateCurrentVehicleCosts, 
-  total, 
-  formatMoney, 
-  REFERENCE_VEHICLE, 
-  FUEL_LABELS, 
+import {
+  FuelPumpIcon,
+  WrenchIcon,
+  AlertIcon,
+  ShieldIcon,
+  ReceiptIcon,
+  PriceTagIcon,
+  ScaleIcon,
+} from './icons';
+import {
+  VehicleInput,
+  FuelType,
+  CostBreakdown,
+  estimateCurrentVehicleCosts,
+  total,
+  formatMoney,
+  REFERENCE_VEHICLE,
+  FUEL_LABELS,
   ROW_LABELS,
-  CURRENCY
+  DEFAULT_FUEL_PRICE,
 } from '../lib/calculator-logic';
+
+const ROW_ICONS: Record<keyof CostBreakdown, React.ComponentType<{ className?: string }>> = {
+  fuel: FuelPumpIcon,
+  maintenance: WrenchIcon,
+  repairs: AlertIcon,
+  insurance: ShieldIcon,
+  taxes: ReceiptIcon,
+  depreciation: PriceTagIcon,
+};
 
 export default function CostCalculator() {
   const [input, setInput] = useState<VehicleInput>({
@@ -41,51 +60,67 @@ export default function CostCalculator() {
     setInput((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateFuelType(fuelType: FuelType) {
+    setInput((prev) => ({ ...prev, fuelType, fuelPrice: DEFAULT_FUEL_PRICE[fuelType] }));
+  }
+
+  function updateNumber<K extends keyof VehicleInput>(key: K, raw: string, fallback: number) {
+    const parsed = Number(raw);
+    update(key, (raw === '' || Number.isNaN(parsed) ? fallback : parsed) as VehicleInput[K]);
+  }
+
+  const isElectric = input.fuelType === 'electric';
+
   return (
-    <div 
-      className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-20"
-      style={{ fontFamily: 'Inter, sans-serif' }}
-    >
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-20">
       {/* 1. Header is placed outside any max-width wrappers so it goes edge-to-edge */}
       <CalculatorHeader />
 
       {/* 2. Main Grid Container - pulled UP over the banner with negative margin */}
       {/* The relative and z-30 ensure the cards float visually above the image */}
       <div className="relative z-30 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-32">
-        
+
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
-          
+
           {/* Column 1: Inputs */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-              <h2 className="mb-6 text-lg font-semibold text-[#0F172A]" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
                 1. Vehiculul tău actual
               </h2>
+              <p className="mb-6 text-sm text-[#0F172A]/60">
+                Completează detaliile de mai jos ca să vedem cât te costă cu adevărat mașina ta.
+              </p>
               <div className="space-y-5">
-                {/* Same input fields as before */}
                 <Field label="Marcă și model">
                   <input
                     className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                     value={input.make}
                     onChange={(e) => update('make', e.target.value)}
-                    placeholder="e.g. BMW X5"
+                    placeholder="ex. BMW X5"
                   />
                 </Field>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="An fabricație">
                     <input
                       type="number"
+                      inputMode="numeric"
+                      min={1990}
+                      max={new Date().getFullYear()}
                       className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                       value={input.year}
-                      onChange={(e) => update('year', Number(e.target.value))}
+                      onChange={(e) => updateNumber('year', e.target.value, input.year)}
                     />
                   </Field>
-                  <Field label="Kilometraj">
+                  <Field label="Kilometraj (km)">
                     <input
                       type="number"
+                      inputMode="numeric"
+                      min={0}
+                      step={1000}
                       className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                       value={input.mileageKm}
-                      onChange={(e) => update('mileageKm', Number(e.target.value))}
+                      onChange={(e) => updateNumber('mileageKm', e.target.value, input.mileageKm)}
                     />
                   </Field>
                 </div>
@@ -93,13 +128,37 @@ export default function CostCalculator() {
                   <select
                     className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                     value={input.fuelType}
-                    onChange={(e) => update('fuelType', e.target.value as FuelType)}
+                    onChange={(e) => updateFuelType(e.target.value as FuelType)}
                   >
                     {Object.entries(FUEL_LABELS).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
                   </select>
                 </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Km parcurși / an">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      step={500}
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                      value={input.annualKm}
+                      onChange={(e) => updateNumber('annualKm', e.target.value, input.annualKm)}
+                    />
+                  </Field>
+                  <Field label={isElectric ? 'Preț energie (lei/kWh)' : 'Preț combustibil (lei/l)'}>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step={0.1}
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                      value={input.fuelPrice}
+                      onChange={(e) => updateNumber('fuelPrice', e.target.value, input.fuelPrice)}
+                    />
+                  </Field>
+                </div>
               </div>
             </section>
           </div>
@@ -107,7 +166,8 @@ export default function CostCalculator() {
           {/* Column 2: Data Visualization Comparison */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm h-full">
-              <h2 className="mb-6 text-lg font-semibold text-[#0F172A]" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
+                <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
                 2. Comparație Costuri
               </h2>
 
@@ -117,9 +177,14 @@ export default function CostCalculator() {
               </div>
 
               <div className="space-y-6">
-                {ROW_LABELS.map(({ key, label }) => (
+                {ROW_LABELS.map(({ key, label }) => {
+                  const Icon = ROW_ICONS[key];
+                  return (
                   <div key={key} className="flex flex-col gap-2">
-                    <div className="text-sm font-medium text-[#0F172A]">{label}</div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-[#0F172A]">
+                      <Icon className="h-4 w-4 shrink-0 text-[#0F172A]/50" />
+                      {label}
+                    </div>
                     <div className="grid grid-cols-2 gap-4 items-center">
                       <div className="flex flex-col items-end gap-1.5">
                         <span className="text-xs font-semibold text-[#0F172A]">{formatMoney(currentCosts[key])}</span>
@@ -135,7 +200,8 @@ export default function CostCalculator() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-2 gap-4">

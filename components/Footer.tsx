@@ -8,10 +8,7 @@ export default function Footer() {
           
           {/* Brand & Description */}
           <div className="md:col-span-1 lg:col-span-2">
-            <h3 
-              className="mb-4 text-xl font-bold tracking-tight text-white"
-              style={{ fontFamily: 'Montserrat, sans-serif' }}
-            >
+            <h3 className="font-heading mb-4 text-xl font-bold tracking-tight text-white">
               SmartCarCompare
             </h3>
             <p className="max-w-xs text-sm font-medium leading-relaxed text-white/70">
@@ -21,34 +18,28 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 
-              className="mb-4 text-sm font-bold uppercase tracking-wider text-[#2563EB]"
-              style={{ fontFamily: 'Montserrat, sans-serif' }}
-            >
+            <h4 className="font-heading mb-4 text-sm font-bold uppercase tracking-wider text-[#2563EB]">
               Informații Utile
             </h4>
             <ul className="space-y-3 text-sm font-medium text-white/70">
               <li>
-                <a href="#" className="hover:text-[#F97316] transition-colors">Despre Noi</a>
+                <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">Despre Noi</a>
               </li>
               <li>
-                <a href="#" className="hover:text-[#F97316] transition-colors">Termeni și Condiții</a>
+                <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">Termeni și Condiții</a>
               </li>
               <li>
-                <a href="#" className="hover:text-[#F97316] transition-colors">Politica de Confidențialitate</a>
+                <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">Politica de Confidențialitate</a>
               </li>
               <li>
-                <a href="#" className="hover:text-[#F97316] transition-colors">Politica Cookie</a>
+                <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">Politica Cookie</a>
               </li>
             </ul>
           </div>
 
           {/* Contact Details */}
           <div>
-            <h4 
-              className="mb-4 text-sm font-bold uppercase tracking-wider text-[#2563EB]"
-              style={{ fontFamily: 'Montserrat, sans-serif' }}
-            >
+            <h4 className="font-heading mb-4 text-sm font-bold uppercase tracking-wider text-[#2563EB]">
               Contact
             </h4>
             <ul className="space-y-3 text-sm font-medium text-white/70">
