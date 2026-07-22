@@ -1,12 +1,16 @@
 'use client';
 
-import { formatMoney } from '../lib/calculator-logic';
 import { CheckCircleIcon } from './icons';
-import type { EstimateOutput } from '../lib/api';
+import type { FinalEstimate } from '../lib/api';
 
 interface CalculatorFooterProps {
-  result: EstimateOutput | null;
+  result: FinalEstimate | null;
 }
+
+const PERIOD_LABELS: Record<string, string> = {
+  annual: '/ an',
+  monthly: '/ lună',
+};
 
 function confidenceColor(score: number): string {
   if (score >= 8) return '#2563EB';
@@ -27,23 +31,34 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
             Cost estimat
           </p>
           <p className="font-heading text-3xl font-bold text-[#2563EB] tracking-tight">
-            {formatMoney(result.min_cost)} – {formatMoney(result.max_cost)}
+            {Math.round(result.total_estimated_cost.amount).toLocaleString()} {result.total_estimated_cost.currency}
           </p>
+          {PERIOD_LABELS[result.cost_period] && (
+            <p className="mt-1 text-sm font-medium text-[#2563EB]/80">
+              {PERIOD_LABELS[result.cost_period]}
+            </p>
+          )}
 
           <div className="mt-4 border-t border-[#2563EB]/10 pt-4">
             <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-[#2563EB]/80">
               <span>Încredere estimare</span>
-              <span>{result.Accuracy}/10</span>
+              <span>{result.confidence}/10</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-white">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.max(0, Math.min(100, (result.Accuracy / 10) * 100))}%`,
-                  backgroundColor: confidenceColor(result.Accuracy),
+                  width: `${Math.max(0, Math.min(100, (result.confidence / 10) * 100))}%`,
+                  backgroundColor: confidenceColor(result.confidence),
                 }}
               />
             </div>
+            {result.verification.verified && (
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#2563EB]/70">
+                <CheckCircleIcon className="h-3.5 w-3.5" />
+                Estimare verificată{result.verification.revisions > 0 && ` · ${result.verification.revisions} revizii`}
+              </p>
+            )}
           </div>
         </div>
       ) : (

@@ -6,21 +6,50 @@ export interface EstimateRequest {
   fuel: string;
 }
 
-export interface EstimateOutput {
-  min_cost: number;
-  max_cost: number;
-  issue_list: string[];
-  Accuracy: number;
-  Details: string;
+export interface EstimateVehicle {
+  make: string;
+  model: string;
+  year: number;
+  fuel: string;
+  km: number;
 }
 
-interface EstimateSuccessBody {
-  output: EstimateOutput;
+export interface CommonProblem {
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | string;
+  estimated_cost_min: number;
+  estimated_cost_max: number;
 }
 
-interface ApiErrorBody {
-  error: string;
-  details?: string;
+export interface EstimateEngine {
+  motor_type: string;
+  common_problems: CommonProblem[];
+}
+
+export interface CostItem {
+  key: string;
+  label: string;
+  icon: string;
+  amount: number;
+  currency: string;
+}
+
+export interface VerificationMeta {
+  verified: boolean;
+  revisions: number;
+  notes?: string | null;
+}
+
+export interface FinalEstimate {
+  vehicle: EstimateVehicle;
+  engine: EstimateEngine;
+  cost_breakdown: CostItem[];
+  total_estimated_cost: CostItem;
+  cost_period: string;
+  confidence: number;
+  summary: string;
+  verification: VerificationMeta;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -38,7 +67,7 @@ function friendlyErrorMessage(status: number): string {
   }
 }
 
-export async function fetchCostEstimate(input: EstimateRequest): Promise<EstimateOutput> {
+export async function fetchCostEstimate(input: EstimateRequest): Promise<FinalEstimate> {
   if (!API_BASE_URL) {
     throw new Error('Adresa serviciului de estimare nu este configurată (NEXT_PUBLIC_API_URL).');
   }
@@ -58,16 +87,16 @@ export async function fetchCostEstimate(input: EstimateRequest): Promise<Estimat
     throw new Error(friendlyErrorMessage(response.status));
   }
 
-  let body: EstimateSuccessBody | ApiErrorBody;
+  let body: FinalEstimate;
   try {
     body = await response.json();
   } catch {
     throw new Error('Răspunsul primit de la serviciul de estimare nu a putut fi citit.');
   }
 
-  if (!('output' in body)) {
+  if (!body || !Array.isArray(body.cost_breakdown) || !body.total_estimated_cost) {
     throw new Error('Răspuns neașteptat de la serviciul de estimare.');
   }
 
-  return body.output;
+  return body;
 }
