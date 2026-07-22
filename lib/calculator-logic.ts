@@ -47,6 +47,13 @@ export const FUEL_LABELS: Record<FuelType, string> = {
   electric: 'Electric',
 };
 
+export const DEFAULT_FUEL_PRICE: Record<FuelType, number> = {
+  petrol: 7.2,
+  diesel: 7.2,
+  hybrid: 7.2,
+  electric: 0.9,
+};
+
 export const ROW_LABELS: { key: keyof CostBreakdown; label: string }[] = [
   { key: 'fuel', label: 'Combustibil' },
   { key: 'maintenance', label: 'Întreținere & Revizii' },
