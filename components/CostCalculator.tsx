@@ -3,9 +3,22 @@
 import { useState } from 'react';
 import CalculatorHeader from './CalculatorHeader';
 import CalculatorFooter from './CalculatorFooter';
+import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_LABELS } from '../lib/calculator-logic';
-import { fetchCostEstimate, EstimateOutput } from '../lib/api';
+import { fetchCostEstimate, FinalEstimate } from '../lib/api';
+
+const SEVERITY_STYLES: Record<string, string> = {
+  low: 'bg-[#2563EB]/10 text-[#2563EB]',
+  medium: 'bg-[#F97316]/10 text-[#F97316]',
+  high: 'bg-red-100 text-red-700',
+};
+
+const SEVERITY_LABELS: Record<string, string> = {
+  low: 'Risc scăzut',
+  medium: 'Risc mediu',
+  high: 'Risc ridicat',
+};
 
 interface FormState {
   make: string;
@@ -26,7 +39,7 @@ export default function CostCalculator() {
     fuel: 'diesel',
   });
   const [status, setStatus] = useState<Status>('idle');
-  const [result, setResult] = useState<EstimateOutput | null>(null);
+  const [result, setResult] = useState<FinalEstimate | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -191,34 +204,53 @@ export default function CostCalculator() {
 
               {status === 'success' && result && (
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="mb-3 text-sm font-semibold text-[#0F172A]">
-                      Ce trebuie să știi
-                    </h3>
-                    {result.issue_list.length > 0 ? (
-                      <ul className="space-y-2.5">
-                        {result.issue_list.map((issue, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-[#0F172A]/80">
-                            <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
-                            {issue}
+                  <CostBreakdownBars
+                    costBreakdown={result.cost_breakdown}
+                    total={result.total_estimated_cost}
+                    period={result.cost_period}
+                  />
+
+                  {result.engine.common_problems.length > 0 && (
+                    <div className="pt-5 border-t border-gray-100">
+                      <h3 className="mb-3 text-sm font-semibold text-[#0F172A]">
+                        Probleme frecvente {result.engine.motor_type && `· ${result.engine.motor_type}`}
+                      </h3>
+                      <ul className="space-y-3">
+                        {result.engine.common_problems.map((problem, idx) => (
+                          <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-start gap-2">
+                                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                                <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
+                              </div>
+                              <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
+                                {SEVERITY_LABELS[problem.severity] ?? problem.severity}
+                              </span>
+                            </div>
+                            {problem.description && (
+                              <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
+                            )}
+                            {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
+                              <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
+                                {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
+                              </p>
+                            )}
                           </li>
                         ))}
                       </ul>
-                    ) : (
-                      <p className="text-sm text-[#0F172A]/60">
-                        Nu au fost identificate costuri neprevăzute notabile.
-                      </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
-                  <div className="pt-4 border-t border-gray-100">
-                    <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
-                      Detalii
-                    </h3>
-                    <p className="text-sm leading-relaxed text-[#0F172A]/70">
-                      {result.Details}
-                    </p>
-                  </div>
+                  {result.summary && (
+                    <div className="pt-5 border-t border-gray-100">
+                      <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
+                        Detalii
+                      </h3>
+                      <p className="text-sm leading-relaxed text-[#0F172A]/70">
+                        {result.summary}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
