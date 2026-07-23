@@ -4,6 +4,7 @@ export interface EstimateRequest {
   year: number;
   km: number;
   fuel: string;
+  urban_percentage: number;
 }
 
 export interface EstimateVehicle {
@@ -12,6 +13,7 @@ export interface EstimateVehicle {
   year: number;
   fuel: string;
   km: number;
+  urban_percentage: number;
 }
 
 export interface CommonProblem {
