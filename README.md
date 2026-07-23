@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SmartCarCompare — Frontend
 
-## Getting Started
+SmartCarCompare is a web app that estimates the true cost of keeping your
+current car versus switching to a new one. You enter your vehicle's make,
+model, year, mileage, fuel type, and typical driving conditions; the app
+sends that to a backend estimation service and renders back a cost
+breakdown, a total estimated cost, a confidence score, and a list of common
+mechanical problems for that engine/mileage combination.
 
-First, run the development server:
+This repository is the frontend only — a [Next.js](https://nextjs.org) app.
+The estimation logic itself (including any AI/LLM calls) lives in a separate
+backend service and is not part of this codebase.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## What it does
+
+1. The user fills in a form (make, model, year, kilometers, fuel type, and a
+   rural/urban driving slider).
+2. On submit, the frontend calls `POST {NEXT_PUBLIC_API_URL}/api/estimate`
+   with that data.
+3. The backend responds with:
+   - a per-category cost breakdown (fuel, maintenance, depreciation, etc.)
+   - a total estimated cost and the period it covers (annual/monthly)
+   - a confidence score for the estimate
+   - a list of common problems reported for that engine, with severity and
+     estimated repair cost ranges
+4. The UI renders all of this across three panels: inputs, cost analysis,
+   and common problems, plus a results summary bar underneath.
+
+The app is in Romanian (all UI copy, error messages, etc.) since it targets
+the Romanian used-car market.
+
+## Project structure
+
+```
+app/
+  layout.tsx           Root layout: fonts, global header/footer, Vercel Analytics
+  page.tsx             Home page — renders the CostCalculator
+  globals.css          Tailwind base styles
+components/
+  CostCalculator.tsx   Main stateful component: form state, API call, result rendering
+  CalculatorHeader.tsx Banner/header for the calculator section
+  CalculatorFooter.tsx Results summary bar (total cost, confidence, CTAs)
+  CostBreakdownBars.tsx Bar-chart style rendering of the cost breakdown
+  Header.tsx           Site-wide top navigation
+  Footer.tsx           Site-wide footer
+  icons.tsx            Small inline SVG icon set used across the UI
+lib/
+  api.ts               Typed fetch wrapper around the backend's /api/estimate endpoint
+  calculator-logic.ts  Shared types/constants (fuel types, currency formatting)
+public/                Static assets (banner image, default Next.js icons)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [Next.js](https://nextjs.org) (App Router)
+- React 19 + TypeScript
+- Tailwind CSS 4
+- [Vercel Analytics](https://vercel.com/analytics)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Getting started locally
 
-## Learn More
+Install dependencies and start the dev server:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Environment variables
 
-## Deploy on Vercel
+The app needs one environment variable, the base URL of the backend API:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Base URL of the backend estimation API (no trailing slash), e.g. `https://your-backend.example.com` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Copy `.env.example` to `.env` and fill in a real value for local development:
+
+```bash
+cp .env.example .env
+```
+
+`.env` is git-ignored and must never be committed — see [Deploying / configuring env vars](#deploying--configuring-env-vars) below for how production is configured.
+
+Note: because this variable is prefixed with `NEXT_PUBLIC_`, Next.js bundles
+it into the client-side JavaScript by design, so it is visible to anyone
+using the site. It should only ever hold a public backend URL, never a
+secret or API key — those stay server-side in the backend service.
+
+## Deploying / configuring env vars
+
+This project is set up to deploy on [Vercel](https://vercel.com):
+
+1. Import this repository into Vercel.
+2. In **Project Settings → Environment Variables**, add `NEXT_PUBLIC_API_URL`
+   pointing at your deployed backend, for each environment (Production,
+   Preview, Development) as needed.
+3. Deploy. Vercel injects the environment variables at build time — no
+   secrets are stored in the repository itself.
+
+```bash
+npm run build
+npm start
+```
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the Next.js dev server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | Run ESLint |
