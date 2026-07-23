@@ -26,6 +26,7 @@ interface FormState {
   year: number;
   km: number;
   fuel: FuelType;
+  urbanPercentage: number;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -37,6 +38,7 @@ export default function CostCalculator() {
     year: 2016,
     km: 150_000,
     fuel: 'diesel',
+    urbanPercentage: 50,
   });
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<FinalEstimate | null>(null);
@@ -64,6 +66,7 @@ export default function CostCalculator() {
         year: form.year,
         km: form.km,
         fuel: form.fuel,
+        urban_percentage: form.urbanPercentage,
       });
       setResult(output);
       setStatus('success');
@@ -86,15 +89,15 @@ export default function CostCalculator() {
 
           {/* Column 1: Inputs */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            <form onSubmit={handleSubmit}>
-              <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+            <form onSubmit={handleSubmit} className="flex lg:h-[40rem]">
+              <section className="flex w-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
                 <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
                   1. Vehiculul tău actual
                 </h2>
                 <p className="mb-6 text-sm text-[#0F172A]/60">
                   Completează detaliile de mai jos ca să vedem cât te costă cu adevărat mașina ta.
                 </p>
-                <div className="space-y-5">
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="Marcă">
                       <input
@@ -153,6 +156,25 @@ export default function CostCalculator() {
                       ))}
                     </select>
                   </Field>
+                  <Field label="Mediu de condus predominant">
+                    <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={form.urbanPercentage}
+                        onChange={(e) => update('urbanPercentage', Number(e.target.value))}
+                        className="w-full accent-[#2563EB]"
+                        aria-label="Procent condus în mediul urban"
+                      />
+                      <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
+                        <span>Rural</span>
+                        <span className="text-[#2563EB]">{form.urbanPercentage}% urban</span>
+                        <span>Urban</span>
+                      </div>
+                    </div>
+                  </Field>
                 </div>
 
                 <button
@@ -169,7 +191,7 @@ export default function CostCalculator() {
 
           {/* Column 2: Cost breakdown */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            <section className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+            <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[40rem]">
               <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
                 2. Analiza Estimării
@@ -203,23 +225,25 @@ export default function CostCalculator() {
               )}
 
               {status === 'success' && result && (
-                <div className="space-y-6">
-                  <CostBreakdownBars
-                    costBreakdown={result.cost_breakdown}
-                    total={result.total_estimated_cost}
-                    period={result.cost_period}
-                  />
+                <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                  <div className="space-y-6">
+                    <CostBreakdownBars
+                      costBreakdown={result.cost_breakdown}
+                      total={result.total_estimated_cost}
+                      period={result.cost_period}
+                    />
 
-                  {result.summary && (
-                    <div className="pt-5 border-t border-gray-100">
-                      <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
-                        Detalii
-                      </h3>
-                      <p className="text-sm leading-relaxed text-[#0F172A]/70">
-                        {result.summary}
-                      </p>
-                    </div>
-                  )}
+                    {result.summary && (
+                      <div className="pt-5 border-t border-gray-100">
+                        <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
+                          Detalii
+                        </h3>
+                        <p className="text-sm leading-relaxed text-[#0F172A]/70">
+                          {result.summary}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </section>
@@ -227,7 +251,7 @@ export default function CostCalculator() {
 
           {/* Column 3: Common problems, scrollable */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[34rem]">
+            <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[40rem]">
               <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <AlertIcon className="h-5 w-5 text-[#F97316]" />
                 Probleme frecvente
