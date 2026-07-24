@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ScaleIcon } from './icons';
+import AccountNav from './AccountNav';
 
 export default function Header() {
   return (
@@ -31,15 +32,8 @@ export default function Header() {
           </Link>
         </nav>
 
-        {/* Call to Action (CTA) */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            className="rounded-xl bg-[#F97316] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#EA580C] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30"
-          >
-            Test Drive
-          </button>
-        </div>
+        {/* Auth controls (login/signup, or account + logout once signed in) */}
+        <AccountNav />
         
       </div>
     </header>

@@ -7,6 +7,7 @@ import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_LABELS } from '../lib/calculator-logic';
 import { fetchCostEstimate, FinalEstimate } from '../lib/api';
+import { useAuth } from '../lib/auth-context';
 
 const SEVERITY_STYLES: Record<string, string> = {
   low: 'bg-[#2563EB]/10 text-[#2563EB]',
@@ -32,6 +33,7 @@ interface FormState {
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export default function CostCalculator() {
+  const { accessToken } = useAuth();
   const [form, setForm] = useState<FormState>({
     make: '',
     model: '',
@@ -67,7 +69,7 @@ export default function CostCalculator() {
         km: form.km,
         fuel: form.fuel,
         urban_percentage: form.urbanPercentage,
-      });
+      }, accessToken);
       setResult(output);
       setStatus('success');
     } catch (err) {
