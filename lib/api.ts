@@ -69,16 +69,21 @@ function friendlyErrorMessage(status: number): string {
   }
 }
 
-export async function fetchCostEstimate(input: EstimateRequest): Promise<FinalEstimate> {
+export async function fetchCostEstimate(input: EstimateRequest, accessToken?: string | null): Promise<FinalEstimate> {
   if (!API_BASE_URL) {
     throw new Error('Adresa serviciului de estimare nu este configurată (NEXT_PUBLIC_API_URL).');
+  }
+
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
   }
 
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/api/estimate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(input),
     });
   } catch {
