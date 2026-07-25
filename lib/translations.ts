@@ -128,6 +128,97 @@ export const translations = {
     ro: 'Rezultatul va apărea aici după calcularea estimării.',
     en: 'The result will appear here after calculating the estimate.',
   },
+
+  'auth.emailLabel': { ro: 'Email', en: 'Email' },
+  'auth.passwordLabel': { ro: 'Parolă', en: 'Password' },
+
+  'auth.login.title': { ro: 'Autentificare', en: 'Log in' },
+  'auth.login.subtitle': {
+    ro: 'Introdu datele contului tău pentru a continua.',
+    en: 'Enter your account details to continue.',
+  },
+  'auth.login.submitting': { ro: 'Se autentifică...', en: 'Logging in...' },
+  'auth.login.noAccount': { ro: 'Nu ai cont încă?', en: "Don't have an account yet?" },
+  'auth.login.createOne': { ro: 'Creează unul', en: 'Create one' },
+
+  'auth.signup.title': { ro: 'Creează cont', en: 'Create account' },
+  'auth.signup.subtitle': { ro: 'Durează mai puțin de un minut.', en: 'It takes less than a minute.' },
+  'auth.signup.nameLabel': { ro: 'Nume (opțional)', en: 'Name (optional)' },
+  'auth.signup.passwordHint': { ro: 'Minim 8 caractere.', en: 'Minimum 8 characters.' },
+  'auth.signup.submitting': { ro: 'Se creează contul...', en: 'Creating account...' },
+  'auth.signup.haveAccount': { ro: 'Ai deja cont?', en: 'Already have an account?' },
+  'auth.signup.login': { ro: 'Autentifică-te', en: 'Log in' },
+
+  'account.welcomeBack': { ro: 'Bine ai revenit', en: 'Welcome back' },
+  'account.subtitle': { ro: 'Contul tău SmartCarCompare.', en: 'Your SmartCarCompare account.' },
+  'account.info.title': { ro: 'Informații cont', en: 'Account information' },
+  'account.info.name': { ro: 'Nume', en: 'Name' },
+  'account.info.email': { ro: 'Email', en: 'Email' },
+  'account.info.emailStatus': { ro: 'Stare email', en: 'Email status' },
+  'account.info.verified': { ro: 'Verificat', en: 'Verified' },
+  'account.info.unverified': { ro: 'Neverificat', en: 'Unverified' },
+  'account.info.memberSince': { ro: 'Membru din', en: 'Member since' },
+  'account.estimates.title': { ro: 'Estimările tale', en: 'Your estimates' },
+  'account.estimates.empty': {
+    ro: 'Nu ai nicio estimare salvată încă. Calculează costul unei mașini pentru a o vedea aici.',
+    en: "You don't have any saved estimates yet. Calculate a car's cost to see it here.",
+  },
+  'account.estimates.cta': { ro: 'Mergi la calculator', en: 'Go to calculator' },
+
+  'auth.error.invalidCredentials': { ro: 'Email sau parolă incorectă.', en: 'Incorrect email or password.' },
+  'auth.error.emailTaken': {
+    ro: 'Există deja un cont cu acest email.',
+    en: 'An account with this email already exists.',
+  },
+  'auth.error.invalidRequest': {
+    ro: 'Te rugăm să completezi corect toate câmpurile (email valid, parolă de minim 8 caractere).',
+    en: 'Please fill in all fields correctly (valid email, password with at least 8 characters).',
+  },
+  'auth.error.sessionExpired': {
+    ro: 'Sesiunea ta a expirat. Te rugăm să te autentifici din nou.',
+    en: 'Your session has expired. Please log in again.',
+  },
+  'auth.error.tooManyAttempts': {
+    ro: 'Prea multe încercări. Te rugăm să încerci din nou peste câteva minute.',
+    en: 'Too many attempts. Please try again in a few minutes.',
+  },
+  'auth.error.notConfigured': {
+    ro: 'Adresa serviciului de autentificare nu este configurată (NEXT_PUBLIC_AUTH_API_URL).',
+    en: 'The authentication service address is not configured (NEXT_PUBLIC_AUTH_API_URL).',
+  },
+  'auth.error.networkError': {
+    ro: 'Nu am putut contacta serviciul de autentificare. Verifică-ți conexiunea la internet.',
+    en: 'Could not reach the authentication service. Check your internet connection.',
+  },
+
+  'api.error.badRequest': {
+    ro: 'Te rugăm să completezi toate câmpurile: marcă, model, an, kilometraj și tip combustibil.',
+    en: 'Please fill in all fields: make, model, year, mileage, and fuel type.',
+  },
+  'api.error.serviceUnavailable': {
+    ro: 'Serviciul de estimare este momentan indisponibil. Te rugăm să încerci din nou puțin mai târziu.',
+    en: 'The estimate service is currently unavailable. Please try again later.',
+  },
+  'api.error.estimateFailed': {
+    ro: 'Nu am reușit să generăm o estimare de cost chiar acum. Te rugăm să încerci din nou.',
+    en: 'We could not generate a cost estimate right now. Please try again.',
+  },
+  'api.error.notConfigured': {
+    ro: 'Adresa serviciului de estimare nu este configurată (NEXT_PUBLIC_API_URL).',
+    en: 'The estimate service address is not configured (NEXT_PUBLIC_API_URL).',
+  },
+  'api.error.networkError': {
+    ro: 'Nu am putut contacta serviciul de estimare. Verifică-ți conexiunea la internet.',
+    en: 'Could not reach the estimate service. Check your internet connection.',
+  },
+  'api.error.unreadableResponse': {
+    ro: 'Răspunsul primit de la serviciul de estimare nu a putut fi citit.',
+    en: 'The response from the estimate service could not be read.',
+  },
+  'api.error.unexpectedResponse': {
+    ro: 'Răspuns neașteptat de la serviciul de estimare.',
+    en: 'Unexpected response from the estimate service.',
+  },
 } as const satisfies Record<string, Record<Language, string>>;
 
 export type TranslationKey = keyof typeof translations;

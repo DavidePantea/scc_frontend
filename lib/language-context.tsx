@@ -42,6 +42,16 @@ function getServerSnapshot(): Language {
   return 'ro';
 }
 
+// Non-reactive getter for plain (non-component) modules, e.g. API error
+// messages thrown outside of React's render/hook lifecycle.
+export function getLanguage(): Language {
+  return currentLanguage;
+}
+
+export function translate(key: TranslationKey): string {
+  return translations[key][currentLanguage];
+}
+
 function commitLanguage(lang: Language) {
   currentLanguage = lang;
   window.localStorage.setItem(STORAGE_KEY, lang);
