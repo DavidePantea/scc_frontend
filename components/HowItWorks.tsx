@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import PageHero from './PageHero';
 import { ScaleIcon } from './icons';
 import { useLanguage } from '../lib/language-context';
 import type { TranslationKey } from '../lib/translations';
@@ -16,16 +17,7 @@ export default function HowItWorks() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
-      <div className="bg-[#0F172A] py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            {t('howItWorks.heroTitle')}
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 sm:text-lg">
-            {t('howItWorks.heroSubtitle')}
-          </p>
-        </div>
-      </div>
+      <PageHero title={t('howItWorks.heroTitle')} subtitle={t('howItWorks.heroSubtitle')} />
 
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
