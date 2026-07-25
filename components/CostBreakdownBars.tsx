@@ -10,7 +10,7 @@ import {
   ScaleIcon,
 } from './icons';
 import type { CostItem } from '../lib/api';
-import { useLanguage } from '../lib/language-context';
+import { useLanguage, type TranslateFn } from '../lib/language-context';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
@@ -26,8 +26,29 @@ const ICON_MAP: Record<string, IconComponent> = {
   total: ScaleIcon,
 };
 
+// The backend always returns Romanian label text, but its `key` is a
+// stable, finite identifier (already used above for icon mapping) - use it
+// to show a localized label instead, falling back to the API's own label
+// for any key we don't recognize.
+const LABEL_KEY_MAP: Record<string, 'costItem.total' | 'costItem.fuel' | 'costItem.maintenance' | 'costItem.repair' | 'costItem.insurance' | 'costItem.tax' | 'costItem.depreciation'> = {
+  total: 'costItem.total',
+  fuel: 'costItem.fuel',
+  maintenance: 'costItem.maintenance',
+  repair: 'costItem.repair',
+  repairs: 'costItem.repair',
+  insurance: 'costItem.insurance',
+  tax: 'costItem.tax',
+  taxes: 'costItem.tax',
+  depreciation: 'costItem.depreciation',
+};
+
 function resolveIcon(item: CostItem): IconComponent {
   return ICON_MAP[item.key] ?? ICON_MAP[item.icon] ?? ReceiptIcon;
+}
+
+function resolveLabel(item: CostItem, t: TranslateFn): string {
+  const translationKey = LABEL_KEY_MAP[item.key];
+  return translationKey ? t(translationKey) : item.label;
 }
 
 function formatAmount(amount: number, currency: string): string {
@@ -55,7 +76,7 @@ export default function CostBreakdownBars({ costBreakdown, total, period }: Cost
         <div className="mb-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
             <ScaleIcon className="h-4 w-4 text-[#0F172A]/50" />
-            {total.label}
+            {resolveLabel(total, t)}
           </div>
           <span className="whitespace-nowrap text-sm font-bold text-[#0F172A]">
             {formatAmount(total.amount, total.currency)}
@@ -76,7 +97,7 @@ export default function CostBreakdownBars({ costBreakdown, total, period }: Cost
               <div className="flex items-center justify-between gap-3 text-sm">
                 <div className="flex items-center gap-2 font-medium text-[#0F172A]">
                   <Icon className="h-4 w-4 shrink-0 text-[#0F172A]/50" />
-                  {item.label}
+                  {resolveLabel(item, t)}
                 </div>
                 <span className="whitespace-nowrap font-semibold text-[#2563EB]">
                   {formatAmount(item.amount, item.currency)}

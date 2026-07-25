@@ -92,6 +92,14 @@ export const translations = {
   'period.annual': { ro: '/ an', en: '/ year' },
   'period.monthly': { ro: '/ lună', en: '/ month' },
 
+  'costItem.total': { ro: 'Cost total anual estimat', en: 'Estimated total annual cost' },
+  'costItem.fuel': { ro: 'Combustibil', en: 'Fuel' },
+  'costItem.maintenance': { ro: 'Întreținere & Revizii', en: 'Maintenance & Servicing' },
+  'costItem.repair': { ro: 'Reparații neprevăzute', en: 'Unforeseen Repairs' },
+  'costItem.insurance': { ro: 'Asigurare (CASCO + RCA)', en: 'Insurance (Comprehensive + Liability)' },
+  'costItem.tax': { ro: 'Taxe & Impozite', en: 'Taxes & Duties' },
+  'costItem.depreciation': { ro: 'Pierdere valoare', en: 'Depreciation' },
+
   'result.title': { ro: 'Rezultatul Tău', en: 'Your Result' },
   'result.estimatedCost': { ro: 'Cost estimat', en: 'Estimated cost' },
   'result.confidence': { ro: 'Încredere estimare', en: 'Estimate confidence' },
