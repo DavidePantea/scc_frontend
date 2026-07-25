@@ -4,11 +4,12 @@ import { createContext, useCallback, useContext, useSyncExternalStore } from 're
 import { translations, TranslationKey } from './translations';
 
 export type Language = 'ro' | 'en';
+export type TranslateFn = (key: TranslationKey) => string;
 
 interface LanguageContextValue {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  t: TranslateFn;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
