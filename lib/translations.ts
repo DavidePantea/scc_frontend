@@ -227,6 +227,81 @@ export const translations = {
     ro: 'Răspuns neașteptat de la serviciul de estimare.',
     en: 'Unexpected response from the estimate service.',
   },
+
+  'howItWorks.heroTitle': { ro: 'Cum Funcționează', en: 'How It Works' },
+  'howItWorks.heroSubtitle': {
+    ro: 'De la câteva detalii despre mașina ta, la o decizie informată — în trei pași simpli.',
+    en: 'From a few details about your car to an informed decision — in three simple steps.',
+  },
+  'howItWorks.step1Title': { ro: 'Completează detaliile mașinii', en: "Fill in your car's details" },
+  'howItWorks.step1Desc': {
+    ro: 'Introdu marca, modelul, anul, kilometrajul și tipul de combustibil pentru vehiculul tău actual — sau pentru două vehicule, dacă vrei să le compari.',
+    en: "Enter the make, model, year, mileage, and fuel type for your current vehicle — or for two vehicles if you'd like to compare them.",
+  },
+  'howItWorks.step2Title': { ro: 'Primești o analiză bazată pe AI', en: 'Get an AI-powered analysis' },
+  'howItWorks.step2Desc': {
+    ro: 'În câteva secunde, calculăm costul total estimat — combustibil, întreținere, asigurare, taxe și depreciere — și identificăm problemele frecvente ale motorului.',
+    en: 'In just a few seconds, we calculate the estimated total cost — fuel, maintenance, insurance, taxes, and depreciation — and flag common engine problems.',
+  },
+  'howItWorks.step3Title': { ro: 'Ia o decizie informată', en: 'Make an informed decision' },
+  'howItWorks.step3Desc': {
+    ro: 'Vezi rezultatul complet, însoțit de un scor de încredere, și decide dacă merită să treci la o mașină mai nouă.',
+    en: 'See the full result along with a confidence score, and decide whether it’s worth switching to a newer car.',
+  },
+  'howItWorks.compareTitle': { ro: 'Vrei să compari două mașini?', en: 'Want to compare two cars?' },
+  'howItWorks.compareDesc': {
+    ro: 'Folosește pagina de comparație pentru a pune față în față vehiculul tău actual și o alternativă, cu aceleași estimări de cost și probleme frecvente afișate una lângă alta.',
+    en: 'Use the comparison page to put your current vehicle head-to-head with an alternative, with the same cost estimates and common problems shown side by side.',
+  },
+  'howItWorks.compareCta': { ro: 'Compară vehicule', en: 'Compare vehicles' },
+  'howItWorks.ctaTitle': { ro: 'Gata să afli cât te costă mașina ta?', en: 'Ready to find out what your car really costs?' },
+  'howItWorks.ctaDesc': {
+    ro: 'Durează mai puțin de un minut și nu necesită cont.',
+    en: 'It takes less than a minute and no account is required.',
+  },
+  'howItWorks.ctaButton': { ro: 'Calculează estimarea', en: 'Calculate estimate' },
+
+  'advantages.heroTitle': { ro: 'Avantaje', en: 'Advantages' },
+  'advantages.heroSubtitle': {
+    ro: 'De ce merită să folosești SmartCarCompare înainte de a lua o decizie despre mașina ta.',
+    en: 'Why it pays off to use SmartCarCompare before making a decision about your car.',
+  },
+  'advantages.transparency.title': { ro: 'Transparență totală a costurilor', en: 'Full cost transparency' },
+  'advantages.transparency.desc': {
+    ro: 'Vezi exact cât te costă o mașină: combustibil, întreținere, asigurare, taxe și depreciere, într-un singur loc.',
+    en: 'See exactly what a car costs you: fuel, maintenance, insurance, taxes, and depreciation, all in one place.',
+  },
+  'advantages.avoidRepairs.title': { ro: 'Evită reparațiile neprevăzute', en: 'Avoid unexpected repairs' },
+  'advantages.avoidRepairs.desc': {
+    ro: 'Identificăm problemele frecvente ale motorului înainte să apară, ca să nu fii luat prin surprindere.',
+    en: "We flag common engine problems before they happen, so you're never caught off guard.",
+  },
+  'advantages.compareVehicles.title': { ro: 'Compară mai multe vehicule', en: 'Compare multiple vehicles' },
+  'advantages.compareVehicles.desc': {
+    ro: 'Pune două mașini față în față și vezi imediat care este alegerea mai avantajoasă.',
+    en: 'Put two cars side by side and instantly see which is the smarter choice.',
+  },
+  'advantages.verifiedEstimates.title': { ro: 'Estimări verificate de AI', en: 'AI-verified estimates' },
+  'advantages.verifiedEstimates.desc': {
+    ro: 'Fiecare estimare trece printr-un proces de verificare, ca să primești un scor de încredere clar.',
+    en: 'Every estimate goes through a verification process, giving you a clear confidence score.',
+  },
+  'advantages.warranty.title': { ro: 'Garanție extinsă și siguranță', en: 'Extended warranty and safety' },
+  'advantages.warranty.desc': {
+    ro: 'Mașinile mai noi vin cu garanții extinse și sisteme de siguranță avansate, reducând riscul unor costuri neașteptate.',
+    en: 'Newer cars come with extended warranties and advanced safety systems, reducing the risk of unexpected costs.',
+  },
+  'advantages.predictable.title': { ro: 'Costuri lunare predictibile', en: 'Predictable monthly costs' },
+  'advantages.predictable.desc': {
+    ro: 'Cu o estimare clară a costurilor, poți bugeta lunar fără surprize neplăcute.',
+    en: 'With a clear cost estimate, you can budget monthly without unpleasant surprises.',
+  },
+  'advantages.ctaTitle': { ro: 'Începe să compari chiar acum', en: 'Start comparing right now' },
+  'advantages.ctaDesc': {
+    ro: 'Vezi în câteva secunde dacă mașina ta actuală chiar merită costurile.',
+    en: 'See in seconds whether your current car really is worth the costs.',
+  },
+  'advantages.ctaButton': { ro: 'Calculează estimarea', en: 'Calculate estimate' },
 } as const satisfies Record<string, Record<Language, string>>;
 
 export type TranslationKey = keyof typeof translations;
