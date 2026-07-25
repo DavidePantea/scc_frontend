@@ -30,10 +30,10 @@ export default function Header() {
           <Link href="/compare" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
             {t('nav.compare')}
           </Link>
-          <Link href="#" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
+          <Link href="/how-it-works" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="#" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
+          <Link href="/advantages" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
             {t('nav.advantages')}
           </Link>
           <Link href="#" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
