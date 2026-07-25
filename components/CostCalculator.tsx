@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import CalculatorHeader from './CalculatorHeader';
 import CalculatorFooter from './CalculatorFooter';
 import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
-import { fetchCostEstimate, FinalEstimate } from '../lib/api';
+import { fetchCostEstimate, fetchSimpleResearchById, FinalEstimate } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
 
@@ -30,6 +31,8 @@ type Status = 'idle' | 'loading' | 'success' | 'error';
 export default function CostCalculator() {
   const { accessToken } = useAuth();
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const researchId = searchParams.get('researchId');
   const [form, setForm] = useState<FormState>({
     make: '',
     model: '',
@@ -41,6 +44,44 @@ export default function CostCalculator() {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<FinalEstimate | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!researchId) return;
+    if (!accessToken) {
+      setErrorMessage(t('history.loginRequired'));
+      setStatus('error');
+      return;
+    }
+
+    let cancelled = false;
+    setStatus('loading');
+    setErrorMessage(null);
+
+    fetchSimpleResearchById(researchId, accessToken)
+      .then((data) => {
+        if (cancelled) return;
+        setForm({
+          make: data.vehicle.make,
+          model: data.vehicle.model,
+          year: data.vehicle.year,
+          km: data.vehicle.km,
+          fuel: data.vehicle.fuel as FuelType,
+          urbanPercentage: data.vehicle.urban_percentage,
+        });
+        setResult(data.result);
+        setStatus('success');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setErrorMessage(err instanceof Error ? err.message : t('error.generic'));
+        setStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [researchId, accessToken]);
 
   const severityLabels: Record<string, string> = {
     low: t('severity.low'),

@@ -1,6 +1,10 @@
+import { Suspense } from 'react';
 import CostCalculator from '@/components/CostCalculator';
-//comment
+
 export default function Page() {
-  return <CostCalculator />;
+  return (
+    <Suspense>
+      <CostCalculator />
+    </Suspense>
+  );
 }
- 

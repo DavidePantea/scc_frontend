@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import CalculatorHeader from './CalculatorHeader';
 import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
-import { fetchCostEstimate, FinalEstimate } from '../lib/api';
+import {
+  fetchComparisonResearchById,
+  fetchCostEstimate,
+  saveComparisonResearch,
+  FinalEstimate,
+} from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
 
@@ -100,6 +106,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function CompareCalculator() {
   const { accessToken } = useAuth();
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const researchId = searchParams.get('researchId');
   const [step, setStep] = useState<1 | 2>(1);
 
   const [formA, setFormA] = useState<FormState>(emptyForm());
@@ -110,6 +118,60 @@ export default function CompareCalculator() {
   const [resultB, setResultB] = useState<FinalEstimate | null>(null);
   const [errorA, setErrorA] = useState<string | null>(null);
   const [errorB, setErrorB] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!researchId) return;
+    if (!accessToken) {
+      setErrorA(t('history.loginRequired'));
+      setStatusA('error');
+      return;
+    }
+
+    let cancelled = false;
+    setStatusA('loading');
+    setStatusB('loading');
+    setErrorA(null);
+    setErrorB(null);
+
+    fetchComparisonResearchById(researchId, accessToken)
+      .then((data) => {
+        if (cancelled) return;
+        setFormA({
+          make: data.vehicleA.make,
+          model: data.vehicleA.model,
+          year: data.vehicleA.year,
+          km: data.vehicleA.km,
+          fuel: data.vehicleA.fuel as FuelType,
+          urbanPercentage: data.vehicleA.urban_percentage,
+        });
+        setFormB({
+          make: data.vehicleB.make,
+          model: data.vehicleB.model,
+          year: data.vehicleB.year,
+          km: data.vehicleB.km,
+          fuel: data.vehicleB.fuel as FuelType,
+          urbanPercentage: data.vehicleB.urban_percentage,
+        });
+        setResultA(data.resultA);
+        setResultB(data.resultB);
+        setStatusA('success');
+        setStatusB('success');
+        setStep(2);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : t('error.generic');
+        setErrorA(message);
+        setErrorB(message);
+        setStatusA('error');
+        setStatusB('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [researchId, accessToken]);
 
   const severityLabels: Record<string, string> = {
     low: t('severity.low'),
@@ -131,7 +193,7 @@ export default function CompareCalculator() {
     setStatus: (s: Status) => void,
     setResult: (r: FinalEstimate | null) => void,
     setError: (e: string | null) => void,
-  ): Promise<boolean> {
+  ): Promise<FinalEstimate | null> {
     setStatus('loading');
     setError(null);
     setResult(null);
@@ -144,27 +206,55 @@ export default function CompareCalculator() {
           km: form.km,
           fuel: form.fuel,
           urban_percentage: form.urbanPercentage,
+          // Saved as a pair below once both sides succeed, instead of each
+          // side also landing in the single-vehicle history.
+          skip_history: true,
         },
         accessToken,
       );
       setResult(output);
       setStatus('success');
-      return true;
+      return output;
     } catch (err) {
       setError(err instanceof Error ? err.message : t('error.generic'));
       setStatus('error');
-      return false;
+      return null;
     }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const [okA, okB] = await Promise.all([
+    const [outputA, outputB] = await Promise.all([
       runSide(formA, setStatusA, setResultA, setErrorA),
       runSide(formB, setStatusB, setResultB, setErrorB),
     ]);
-    if (okA && okB) {
+    if (outputA && outputB) {
       setStep(2);
+      if (accessToken) {
+        void saveComparisonResearch(
+          {
+            vehicleA: {
+              make: formA.make.trim(),
+              model: formA.model.trim(),
+              year: formA.year,
+              km: formA.km,
+              fuel: formA.fuel,
+              urban_percentage: formA.urbanPercentage,
+            },
+            vehicleB: {
+              make: formB.make.trim(),
+              model: formB.model.trim(),
+              year: formB.year,
+              km: formB.km,
+              fuel: formB.fuel,
+              urban_percentage: formB.urbanPercentage,
+            },
+            resultA: outputA,
+            resultB: outputB,
+          },
+          accessToken,
+        );
+      }
     }
   }
 
