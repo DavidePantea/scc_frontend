@@ -21,6 +21,9 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex gap-8 text-sm font-medium text-[#0F172A]/80">
+          <Link href="/compare" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
+            Compară
+          </Link>
           <Link href="#" className="rounded-sm hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40">
             Cum Funcționează
           </Link>
