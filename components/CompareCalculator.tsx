@@ -4,25 +4,15 @@ import { useState } from 'react';
 import CalculatorHeader from './CalculatorHeader';
 import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ScaleIcon } from './icons';
-import { FuelType, FUEL_LABELS } from '../lib/calculator-logic';
+import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import { fetchCostEstimate, FinalEstimate } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
+import { useLanguage } from '../lib/language-context';
 
 const SEVERITY_STYLES: Record<string, string> = {
   low: 'bg-[#2563EB]/10 text-[#2563EB]',
   medium: 'bg-[#F97316]/10 text-[#F97316]',
   high: 'bg-red-100 text-red-700',
-};
-
-const SEVERITY_LABELS: Record<string, string> = {
-  low: 'Risc scăzut',
-  medium: 'Risc mediu',
-  high: 'Risc ridicat',
-};
-
-const PERIOD_LABELS: Record<string, string> = {
-  annual: '/ an',
-  monthly: '/ lună',
 };
 
 function confidenceColor(score: number): string {
@@ -59,10 +49,10 @@ function parseNumberOrFallback(raw: string, fallback: number): number {
   return raw === '' || Number.isNaN(parsed) ? fallback : parsed;
 }
 
-function Stepper({ step }: { step: 1 | 2 }) {
+function Stepper({ step, labels }: { step: 1 | 2; labels: [string, string] }) {
   const steps = [
-    { n: 1 as const, label: 'Selectează vehiculele' },
-    { n: 2 as const, label: 'Compară rezultatele' },
+    { n: 1 as const, label: labels[0] },
+    { n: 2 as const, label: labels[1] },
   ];
 
   return (
@@ -109,6 +99,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function CompareCalculator() {
   const { accessToken } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2>(1);
 
   const [formA, setFormA] = useState<FormState>(emptyForm());
@@ -119,6 +110,16 @@ export default function CompareCalculator() {
   const [resultB, setResultB] = useState<FinalEstimate | null>(null);
   const [errorA, setErrorA] = useState<string | null>(null);
   const [errorB, setErrorB] = useState<string | null>(null);
+
+  const severityLabels: Record<string, string> = {
+    low: t('severity.low'),
+    medium: t('severity.medium'),
+    high: t('severity.high'),
+  };
+  const periodLabels: Record<string, string> = {
+    annual: t('period.annual'),
+    monthly: t('period.monthly'),
+  };
 
   function updateForm(key: SideKey, patch: Partial<FormState>) {
     const setForm = key === 'a' ? setFormA : setFormB;
@@ -150,7 +151,7 @@ export default function CompareCalculator() {
       setStatus('success');
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'A apărut o eroare neașteptată. Te rugăm să încerci din nou.');
+      setError(err instanceof Error ? err.message : t('error.generic'));
       setStatus('error');
       return false;
     }
@@ -180,8 +181,8 @@ export default function CompareCalculator() {
   }[] = [
     {
       key: 'a',
-      title: 'Vehiculul tău',
-      subtitle: 'Completează detaliile mașinii tale actuale.',
+      title: t('compare.titleA'),
+      subtitle: t('compare.subtitleA'),
       form: formA,
       status: statusA,
       result: resultA,
@@ -189,8 +190,8 @@ export default function CompareCalculator() {
     },
     {
       key: 'b',
-      title: 'Vehiculul de comparat',
-      subtitle: 'Completează detaliile vehiculului cu care vrei să compari.',
+      title: t('compare.titleB'),
+      subtitle: t('compare.subtitleB'),
       form: formB,
       status: statusB,
       result: resultB,
@@ -204,7 +205,7 @@ export default function CompareCalculator() {
 
       <div className="relative z-30 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-32">
         <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <Stepper step={step} />
+          <Stepper step={step} labels={[t('stepper.step1'), t('stepper.step2')]} />
         </div>
 
         {step === 1 && (
@@ -222,27 +223,27 @@ export default function CompareCalculator() {
 
                   <div className="space-y-5">
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Marcă">
+                      <Field label={t('field.make')}>
                         <input
                           required
                           className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                           value={side.form.make}
                           onChange={(e) => updateForm(side.key, { make: e.target.value })}
-                          placeholder="ex. BMW"
+                          placeholder={t('field.makePlaceholder')}
                         />
                       </Field>
-                      <Field label="Model">
+                      <Field label={t('field.model')}>
                         <input
                           required
                           className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                           value={side.form.model}
                           onChange={(e) => updateForm(side.key, { model: e.target.value })}
-                          placeholder="ex. X5"
+                          placeholder={t('field.modelPlaceholder')}
                         />
                       </Field>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="An fabricație">
+                      <Field label={t('field.year')}>
                         <input
                           required
                           type="number"
@@ -256,7 +257,7 @@ export default function CompareCalculator() {
                           }
                         />
                       </Field>
-                      <Field label="Kilometraj (km)">
+                      <Field label={t('field.km')}>
                         <input
                           required
                           type="number"
@@ -271,21 +272,21 @@ export default function CompareCalculator() {
                         />
                       </Field>
                     </div>
-                    <Field label="Tip combustibil">
+                    <Field label={t('field.fuel')}>
                       <select
                         required
                         className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                         value={side.form.fuel}
                         onChange={(e) => updateForm(side.key, { fuel: e.target.value as FuelType })}
                       >
-                        {Object.entries(FUEL_LABELS).map(([value, label]) => (
+                        {FUEL_TYPES.map((value) => (
                           <option key={value} value={value}>
-                            {label}
+                            {t(`fuel.${value}`)}
                           </option>
                         ))}
                       </select>
                     </Field>
-                    <Field label="Mediu de condus predominant">
+                    <Field label={t('field.drivingEnv')}>
                       <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
                         <input
                           type="range"
@@ -295,12 +296,12 @@ export default function CompareCalculator() {
                           value={side.form.urbanPercentage}
                           onChange={(e) => updateForm(side.key, { urbanPercentage: Number(e.target.value) })}
                           className="w-full accent-[#2563EB]"
-                          aria-label="Procent condus în mediul urban"
+                          aria-label={t('field.drivingEnv')}
                         />
                         <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
-                          <span>Rural</span>
-                          <span className="text-[#2563EB]">{side.form.urbanPercentage}% urban</span>
-                          <span>Urban</span>
+                          <span>{t('field.rural')}</span>
+                          <span className="text-[#2563EB]">{side.form.urbanPercentage}% {t('field.urban')}</span>
+                          <span>{t('field.urban')}</span>
                         </div>
                       </div>
                     </Field>
@@ -323,7 +324,7 @@ export default function CompareCalculator() {
                 className="flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSubmitting && <LoaderIcon className="h-4 w-4 animate-spin" />}
-                {isSubmitting ? 'Se calculează...' : 'Compară vehiculele'}
+                {isSubmitting ? t('action.calculating') : t('compare.submit')}
               </button>
             </div>
           </form>
@@ -338,7 +339,7 @@ export default function CompareCalculator() {
                   <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
                     <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                       <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
-                      2. Analiza Estimării
+                      2. {t('results.title')}
                     </h2>
                     <p className="mb-6 text-sm font-semibold text-[#2563EB]">
                       {side.form.make} {side.form.model} · {side.form.year}
@@ -353,8 +354,11 @@ export default function CompareCalculator() {
                         />
                         {side.result.summary && (
                           <div className="pt-5 border-t border-gray-100">
-                            <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">Detalii</h3>
-                            <p className="text-sm leading-relaxed text-[#0F172A]/70">{side.result.summary}</p>
+                            <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">{t('results.details')}</h3>
+                            {/* Fixed-height, scrollable so summaries of different lengths don't unbalance the columns */}
+                            <div className="h-28 overflow-y-auto pr-1">
+                              <p className="text-sm leading-relaxed text-[#0F172A]/70">{side.result.summary}</p>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -365,46 +369,49 @@ export default function CompareCalculator() {
                   <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
                     <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                       <AlertIcon className="h-5 w-5 text-[#F97316]" />
-                      Probleme frecvente
+                      {t('problems.title')}
                     </h2>
                     {side.result?.engine.motor_type && (
                       <p className="mb-5 text-sm text-[#0F172A]/50">{side.result.engine.motor_type}</p>
                     )}
 
                     {side.result && side.result.engine.common_problems.length > 0 ? (
-                      <ul className="space-y-3">
-                        {side.result.engine.common_problems.map((problem, idx) => (
-                          <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-start gap-2">
-                                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
-                                <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
+                      /* Fixed-height, scrollable so a longer problem list doesn't unbalance the columns */
+                      <div className="h-80 overflow-y-auto pr-1">
+                        <ul className="space-y-3">
+                          {side.result.engine.common_problems.map((problem, idx) => (
+                            <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start gap-2">
+                                  <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                                  <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
+                                </div>
+                                <span
+                                  className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                    SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium
+                                  }`}
+                                >
+                                  {severityLabels[problem.severity] ?? problem.severity}
+                                </span>
                               </div>
-                              <span
-                                className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${
-                                  SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium
-                                }`}
-                              >
-                                {SEVERITY_LABELS[problem.severity] ?? problem.severity}
-                              </span>
-                            </div>
-                            {problem.description && (
-                              <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
-                            )}
-                            {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
-                              <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
-                                {Math.round(problem.estimated_cost_min).toLocaleString()} –{' '}
-                                {Math.round(problem.estimated_cost_max).toLocaleString()} RON
-                              </p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+                              {problem.description && (
+                                <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
+                              )}
+                              {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
+                                <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
+                                  {Math.round(problem.estimated_cost_min).toLocaleString()} –{' '}
+                                  {Math.round(problem.estimated_cost_max).toLocaleString()} RON
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ) : (
-                      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
+                      <div className="flex h-80 flex-col items-center justify-center gap-3 text-center">
                         <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
                         <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                          Nu au fost identificate probleme frecvente notabile.
+                          {t('problems.none')}
                         </p>
                       </div>
                     )}
@@ -412,20 +419,20 @@ export default function CompareCalculator() {
 
                   {/* Step 3: result box, unchanged visual identity, per vehicle */}
                   <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-                    <h2 className="font-heading mb-6 text-lg font-semibold text-[#0F172A]">3. Rezultatul Tău</h2>
+                    <h2 className="font-heading mb-6 text-lg font-semibold text-[#0F172A]">3. {t('result.title')}</h2>
 
                     {side.result ? (
                       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="text-center sm:text-left">
                           <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
-                            Cost estimat
+                            {t('result.estimatedCost')}
                           </p>
                           <p className="font-heading text-3xl font-bold tracking-tight text-[#2563EB]">
                             {Math.round(side.result.total_estimated_cost.amount).toLocaleString()}{' '}
                             {side.result.total_estimated_cost.currency}
-                            {PERIOD_LABELS[side.result.cost_period] && (
+                            {periodLabels[side.result.cost_period] && (
                               <span className="ml-1 text-lg font-medium text-[#2563EB]/70">
-                                {PERIOD_LABELS[side.result.cost_period]}
+                                {periodLabels[side.result.cost_period]}
                               </span>
                             )}
                           </p>
@@ -433,7 +440,7 @@ export default function CompareCalculator() {
 
                         <div className="w-full max-w-xs sm:w-56">
                           <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/60">
-                            <span>Încredere estimare</span>
+                            <span>{t('result.confidence')}</span>
                             <span>{side.result.confidence}/10</span>
                           </div>
                           <div className="h-2 w-full overflow-hidden rounded-full bg-[#F8FAFC]">
@@ -448,9 +455,9 @@ export default function CompareCalculator() {
                           {side.result.verification.verified && (
                             <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#2563EB]/70">
                               <CheckCircleIcon className="h-3.5 w-3.5 shrink-0" />
-                              Estimare verificată
+                              {t('result.verified')}
                               {side.result.verification.revisions > 0 &&
-                                ` · ${side.result.verification.revisions} revizii`}
+                                ` · ${side.result.verification.revisions} ${t('result.revisions')}`}
                             </p>
                           )}
                         </div>
@@ -458,7 +465,7 @@ export default function CompareCalculator() {
                     ) : (
                       <div className="rounded-xl border border-dashed border-gray-200 bg-[#F8FAFC] p-5 text-center">
                         <p className="text-sm font-medium text-[#0F172A]/60">
-                          Rezultatul va apărea aici după calcularea estimării.
+                          {t('compare.resultPlaceholder')}
                         </p>
                       </div>
                     )}
@@ -473,7 +480,7 @@ export default function CompareCalculator() {
                 onClick={() => setStep(1)}
                 className="rounded-xl border-2 border-[#0F172A]/10 bg-transparent px-6 py-3 text-sm font-bold text-[#0F172A] hover:bg-white active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0F172A]/10"
               >
-                ← Modifică vehiculele
+                {t('compare.editVehicles')}
               </button>
             </div>
           </div>

@@ -5,6 +5,7 @@ import Header from "@/components/Header"; // Import the new Header
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/lib/auth-context";
+import { LanguageProvider } from "@/lib/language-context";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -36,18 +37,20 @@ export default function RootLayout({
       className={`${montserrat.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#F8FAFC] font-sans">
-        <AuthProvider>
-          {/* The global header sits at the very top */}
-          <Header />
+        <LanguageProvider>
+          <AuthProvider>
+            {/* The global header sits at the very top */}
+            <Header />
 
-          {/* Main page content grows to fill available space */}
-          <main className="flex-grow">
-            {children}
-          </main>
+            {/* Main page content grows to fill available space */}
+            <main className="flex-grow">
+              {children}
+            </main>
 
-          {/* The true footer sits at the bottom */}
-          <Footer />
-        </AuthProvider>
+            {/* The true footer sits at the bottom */}
+            <Footer />
+          </AuthProvider>
+        </LanguageProvider>
         <Analytics />
       </body>
     </html>

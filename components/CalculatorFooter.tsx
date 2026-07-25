@@ -2,15 +2,11 @@
 
 import { CheckCircleIcon } from './icons';
 import type { FinalEstimate } from '../lib/api';
+import { useLanguage } from '../lib/language-context';
 
 interface CalculatorFooterProps {
   result: FinalEstimate | null;
 }
-
-const PERIOD_LABELS: Record<string, string> = {
-  annual: '/ an',
-  monthly: '/ lună',
-};
 
 function confidenceColor(score: number): string {
   if (score >= 8) return '#2563EB';
@@ -19,10 +15,16 @@ function confidenceColor(score: number): string {
 }
 
 export default function CalculatorFooter({ result }: CalculatorFooterProps) {
+  const { t } = useLanguage();
+  const periodLabels: Record<string, string> = {
+    annual: t('period.annual'),
+    monthly: t('period.monthly'),
+  };
+
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
       <h2 className="font-heading mb-6 text-lg font-semibold text-[#0F172A]">
-        3. Rezultatul Tău
+        3. {t('result.title')}
       </h2>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
@@ -32,13 +34,13 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-center sm:text-left">
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
-                  Cost estimat
+                  {t('result.estimatedCost')}
                 </p>
                 <p className="font-heading text-3xl font-bold tracking-tight text-[#2563EB]">
                   {Math.round(result.total_estimated_cost.amount).toLocaleString()} {result.total_estimated_cost.currency}
-                  {PERIOD_LABELS[result.cost_period] && (
+                  {periodLabels[result.cost_period] && (
                     <span className="ml-1 text-lg font-medium text-[#2563EB]/70">
-                      {PERIOD_LABELS[result.cost_period]}
+                      {periodLabels[result.cost_period]}
                     </span>
                   )}
                 </p>
@@ -46,7 +48,7 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
 
               <div className="w-full max-w-xs sm:w-56">
                 <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/60">
-                  <span>Încredere estimare</span>
+                  <span>{t('result.confidence')}</span>
                   <span>{result.confidence}/10</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-[#F8FAFC]">
@@ -61,7 +63,7 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
                 {result.verification.verified && (
                   <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#2563EB]/70">
                     <CheckCircleIcon className="h-3.5 w-3.5 shrink-0" />
-                    Estimare verificată{result.verification.revisions > 0 && ` · ${result.verification.revisions} revizii`}
+                    {t('result.verified')}{result.verification.revisions > 0 && ` · ${result.verification.revisions} ${t('result.revisions')}`}
                   </p>
                 )}
               </div>
@@ -69,7 +71,7 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
           ) : (
             <div className="rounded-xl border border-dashed border-gray-200 bg-[#F8FAFC] p-5 text-center">
               <p className="text-sm font-medium text-[#0F172A]/60">
-                Completează formularul și apasă „Calculează estimarea&rdquo; pentru a vedea costul estimat.
+                {t('result.placeholder')}
               </p>
             </div>
           )}
@@ -80,13 +82,13 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
         {/* Trust checklist */}
         <ul className="flex flex-col gap-3 text-sm font-medium text-[#0F172A]/80 sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2 lg:flex-1 lg:flex-col lg:gap-3">
           <li className="flex items-start gap-2">
-            <CheckCircleIcon className="h-4 w-4 mt-0.5 shrink-0 text-[#F97316]" /> Garanție extinsă și siguranță
+            <CheckCircleIcon className="h-4 w-4 mt-0.5 shrink-0 text-[#F97316]" /> {t('trust.warranty')}
           </li>
           <li className="flex items-start gap-2">
-            <CheckCircleIcon className="h-4 w-4 mt-0.5 shrink-0 text-[#F97316]" /> Costuri predictibile lunare
+            <CheckCircleIcon className="h-4 w-4 mt-0.5 shrink-0 text-[#F97316]" /> {t('trust.predictable')}
           </li>
           <li className="flex items-start gap-2">
-            <CheckCircleIcon className="h-4 w-4 mt-0.5 shrink-0 text-[#F97316]" /> Tehnologie și confort avansat
+            <CheckCircleIcon className="h-4 w-4 mt-0.5 shrink-0 text-[#F97316]" /> {t('trust.tech')}
           </li>
         </ul>
 
@@ -98,13 +100,13 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
             type="button"
             className="w-full rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-[#EA580C] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30"
           >
-            Programează un test drive
+            {t('cta.testDrive')}
           </button>
           <button
             type="button"
             className="w-full rounded-xl border-2 border-[#0F172A]/10 bg-transparent px-5 py-3 text-sm font-bold text-[#0F172A] hover:bg-[#F8FAFC] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0F172A]/10"
           >
-            Descarcă rezultatul
+            {t('cta.download')}
           </button>
         </div>
       </div>

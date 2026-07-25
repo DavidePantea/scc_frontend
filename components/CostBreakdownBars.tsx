@@ -1,3 +1,5 @@
+'use client';
+
 import {
   FuelPumpIcon,
   WrenchIcon,
@@ -8,6 +10,7 @@ import {
   ScaleIcon,
 } from './icons';
 import type { CostItem } from '../lib/api';
+import { useLanguage } from '../lib/language-context';
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
@@ -31,11 +34,6 @@ function formatAmount(amount: number, currency: string): string {
   return `${Math.round(amount).toLocaleString()} ${currency}`;
 }
 
-const PERIOD_LABELS: Record<string, string> = {
-  annual: '/ an',
-  monthly: '/ lună',
-};
-
 interface CostBreakdownBarsProps {
   costBreakdown: CostItem[];
   total: CostItem;
@@ -43,8 +41,13 @@ interface CostBreakdownBarsProps {
 }
 
 export default function CostBreakdownBars({ costBreakdown, total, period }: CostBreakdownBarsProps) {
+  const { t } = useLanguage();
+  const periodLabels: Record<string, string> = {
+    annual: t('period.annual'),
+    monthly: t('period.monthly'),
+  };
   const totalAmount = total.amount > 0 ? total.amount : 0;
-  const periodLabel = PERIOD_LABELS[period] ?? (period ? `/ ${period}` : '');
+  const periodLabel = periodLabels[period] ?? (period ? `/ ${period}` : '');
 
   return (
     <div className="space-y-5">
