@@ -1,10 +1,13 @@
 import { translate } from './language-context';
 
+export type AccountType = 'buyer' | 'seller';
+
 export interface AuthUser {
   id: string;
   email: string;
   name: string | null;
   emailVerified: boolean;
+  accountType: AccountType;
 }
 
 export interface AuthTokens {
@@ -74,8 +77,13 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   return payload as T;
 }
 
-export function signupRequest(email: string, password: string, name?: string): Promise<AuthResponse> {
-  return postJson<AuthResponse>("/signup", { email, password, name });
+export function signupRequest(
+  email: string,
+  password: string,
+  name?: string,
+  accountType?: AccountType,
+): Promise<AuthResponse> {
+  return postJson<AuthResponse>("/signup", { email, password, name, accountType });
 }
 
 export function loginRequest(email: string, password: string): Promise<AuthResponse> {
