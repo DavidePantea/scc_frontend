@@ -5,6 +5,7 @@ export const translations = {
   'nav.howItWorks': { ro: 'Cum Funcționează', en: 'How It Works' },
   'nav.advantages': { ro: 'Avantaje', en: 'Advantages' },
   'nav.contact': { ro: 'Contact', en: 'Contact' },
+  'nav.sellerDashboard': { ro: 'Panou vânzător', en: 'Seller dashboard' },
 
   'account.login': { ro: 'Autentificare', en: 'Log in' },
   'account.signup': { ro: 'Creează cont', en: 'Sign up' },
@@ -156,6 +157,21 @@ export const translations = {
   'auth.signup.submitting': { ro: 'Se creează contul...', en: 'Creating account...' },
   'auth.signup.haveAccount': { ro: 'Ai deja cont?', en: 'Already have an account?' },
   'auth.signup.login': { ro: 'Autentifică-te', en: 'Log in' },
+  'auth.signup.accountType': { ro: 'Tip de cont', en: 'Account type' },
+  'auth.signup.accountType.buyer': { ro: 'Cumpărător', en: 'Buyer' },
+  'auth.signup.accountType.buyerHint': {
+    ro: 'Compară costuri și cercetează mașini.',
+    en: 'Compare costs and research cars.',
+  },
+  'auth.signup.accountType.seller': { ro: 'Vânzător', en: 'Seller' },
+  'auth.signup.accountType.sellerHint': {
+    ro: 'Adaugă mașini de vânzare și compară-le cu altele.',
+    en: 'List cars for sale and compare them against others.',
+  },
+  'auth.signup.accountType.fixedNotice': {
+    ro: 'Tipul de cont nu poate fi schimbat ulterior.',
+    en: 'The account type cannot be changed later.',
+  },
 
   'account.welcomeBack': { ro: 'Bine ai revenit', en: 'Welcome back' },
   'account.subtitle': { ro: 'Contul tău SmartCarCompare.', en: 'Your SmartCarCompare account.' },
@@ -180,6 +196,71 @@ export const translations = {
     ro: 'Trebuie să fii autentificat pentru a vedea această estimare salvată.',
     en: 'You need to be logged in to view this saved estimate.',
   },
+
+  'seller.dashboard.title': { ro: 'Mașinile tale de vânzare', en: 'Your cars for sale' },
+  'seller.dashboard.subtitle': {
+    ro: 'Adaugă, editează și compară mașinile din inventarul tău.',
+    en: 'Add, edit, and compare the cars in your inventory.',
+  },
+  'seller.dashboard.addNew': { ro: 'Adaugă mașină', en: 'Add a car' },
+  'seller.dashboard.loading': { ro: 'Se încarcă inventarul tău...', en: 'Loading your inventory...' },
+  'seller.dashboard.empty': {
+    ro: 'Nu ai nicio mașină adăugată încă.',
+    en: "You haven't added any cars yet.",
+  },
+  'seller.card.research': { ro: 'Cercetează', en: 'Research' },
+  'seller.card.compare': { ro: 'Compară', en: 'Compare' },
+  'seller.card.edit': { ro: 'Editează', en: 'Edit' },
+  'seller.card.delete': { ro: 'Șterge', en: 'Delete' },
+  'seller.card.deleteConfirm': {
+    ro: 'Sigur vrei să ștergi această mașină? Estimările salvate pentru ea vor fi șterse și ele.',
+    en: 'Delete this car? Any saved research about it will be deleted too.',
+  },
+
+  'seller.form.addTitle': { ro: 'Mașină nouă', en: 'New car' },
+  'seller.form.editTitle': { ro: 'Editează mașina', en: 'Edit car' },
+  'seller.form.price': { ro: 'Preț (LEI)', en: 'Price (LEI)' },
+  'seller.form.vin': { ro: 'Serie șasiu (VIN, opțional)', en: 'VIN (optional)' },
+  'seller.form.location': { ro: 'Localitate (opțional)', en: 'Location (optional)' },
+  'seller.form.condition': { ro: 'Stare (opțional)', en: 'Condition (optional)' },
+  'seller.form.conditionNone': { ro: 'Nespecificată', en: 'Unspecified' },
+  'seller.form.description': { ro: 'Descriere (opțional)', en: 'Description (optional)' },
+  'seller.form.photoUrls': { ro: 'Link-uri poze (opțional, unul pe linie)', en: 'Photo URLs (optional, one per line)' },
+  'seller.form.status': { ro: 'Stare anunț', en: 'Listing status' },
+  'seller.form.save': { ro: 'Salvează', en: 'Save' },
+  'seller.form.saving': { ro: 'Se salvează...', en: 'Saving...' },
+  'seller.form.cancel': { ro: 'Anulează', en: 'Cancel' },
+
+  'seller.condition.excellent': { ro: 'Excelentă', en: 'Excellent' },
+  'seller.condition.good': { ro: 'Bună', en: 'Good' },
+  'seller.condition.fair': { ro: 'Satisfăcătoare', en: 'Fair' },
+  'seller.condition.poor': { ro: 'Slabă', en: 'Poor' },
+
+  'seller.status.active': { ro: 'Activ', en: 'Active' },
+  'seller.status.sold': { ro: 'Vândut', en: 'Sold' },
+  'seller.status.draft': { ro: 'Ciornă', en: 'Draft' },
+
+  'seller.mode.toggleLabel': { ro: 'Mod vânzător', en: 'Seller mode' },
+  'seller.mode.yourCar': { ro: 'Mașina ta', en: 'Your car' },
+  'seller.mode.sellingPoints': { ro: 'Argumente de vânzare', en: 'Selling points' },
+  'seller.mode.generating': { ro: 'Se generează argumentele de vânzare...', en: 'Generating selling points...' },
+  'seller.mode.none': {
+    ro: 'Nu s-au găsit argumente clare în favoarea acestei mașini.',
+    en: 'No clear advantages were found for this car.',
+  },
+  'seller.mode.buyerNote': {
+    ro: 'Vizibil doar pentru tine — dezactivează modul vânzător înainte de a arăta ecranul cumpărătorului.',
+    en: 'Only visible to you — turn off seller mode before turning the screen toward the buyer.',
+  },
+
+  'source.standard': { ro: 'Mașină standard', en: 'Standard car' },
+  'source.myInventory': { ro: 'Din inventarul meu', en: 'From my inventory' },
+  'source.selectListing': { ro: 'Alege o mașină din inventar', en: 'Choose a car from your inventory' },
+  'source.noListings': {
+    ro: 'Nu ai nicio mașină în inventar încă.',
+    en: "You don't have any cars in your inventory yet.",
+  },
+  'source.goToDashboard': { ro: 'Mergi la panoul de vânzător', en: 'Go to your seller dashboard' },
 
   'auth.error.invalidCredentials': { ro: 'Email sau parolă incorectă.', en: 'Incorrect email or password.' },
   'auth.error.emailTaken': {

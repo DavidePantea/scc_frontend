@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { loginRequest, logoutRequest, signupRequest, type AuthResponse, type AuthUser } from './auth-api';
+import { loginRequest, logoutRequest, signupRequest, type AccountType, type AuthResponse, type AuthUser } from './auth-api';
 
 type AuthStatus = 'unauthenticated' | 'authenticating' | 'authenticated';
 
@@ -11,7 +11,7 @@ interface AuthContextValue {
   accessToken: string | null;
   status: AuthStatus;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name?: string) => Promise<void>;
+  signup: (email: string, password: string, name?: string, accountType?: AccountType) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -45,10 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [applyAuthResponse]);
 
-  const signup = useCallback(async (email: string, password: string, name?: string) => {
+  const signup = useCallback(async (email: string, password: string, name?: string, accountType?: AccountType) => {
     setStatus('authenticating');
     try {
-      const response = await signupRequest(email, password, name);
+      const response = await signupRequest(email, password, name, accountType);
       applyAuthResponse(response);
     } catch (err) {
       setStatus('unauthenticated');

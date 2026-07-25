@@ -7,7 +7,7 @@ import CalculatorFooter from './CalculatorFooter';
 import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
-import { fetchCostEstimate, fetchSimpleResearchById, FinalEstimate } from '../lib/api';
+import { fetchCostEstimate, fetchSellerVehicles, fetchSimpleResearchById, FinalEstimate, SellerVehicle } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
 
@@ -17,6 +17,8 @@ const SEVERITY_STYLES: Record<string, string> = {
   high: 'bg-red-100 text-red-700',
 };
 
+type VehicleSource = 'standard' | 'listing';
+
 interface FormState {
   make: string;
   model: string;
@@ -24,15 +26,20 @@ interface FormState {
   km: number;
   fuel: FuelType;
   urbanPercentage: number;
+  source: VehicleSource;
+  sellerVehicleId: string | null;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export default function CostCalculator() {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const researchId = searchParams.get('researchId');
+  const useListing = searchParams.get('useListing');
+  const isSeller = user?.accountType === 'seller';
+  const [sellerVehicles, setSellerVehicles] = useState<SellerVehicle[]>([]);
   const [form, setForm] = useState<FormState>({
     make: '',
     model: '',
@@ -40,10 +47,25 @@ export default function CostCalculator() {
     km: 150_000,
     fuel: 'diesel',
     urbanPercentage: 50,
+    source: 'standard',
+    sellerVehicleId: null,
   });
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<FinalEstimate | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isSeller || !accessToken) return;
+    fetchSellerVehicles(accessToken)
+      .then(setSellerVehicles)
+      .catch(() => undefined);
+  }, [isSeller, accessToken]);
+
+  useEffect(() => {
+    if (!useListing || !isSeller) return;
+    setForm((prev) => ({ ...prev, source: 'listing', sellerVehicleId: useListing }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useListing, isSeller]);
 
   useEffect(() => {
     if (!researchId) return;
@@ -67,6 +89,8 @@ export default function CostCalculator() {
           km: data.vehicle.km,
           fuel: data.vehicle.fuel as FuelType,
           urbanPercentage: data.vehicle.urban_percentage,
+          source: 'standard',
+          sellerVehicleId: null,
         });
         setResult(data.result);
         setStatus('success');
@@ -105,14 +129,19 @@ export default function CostCalculator() {
     setResult(null);
 
     try {
-      const output = await fetchCostEstimate({
-        make: form.make.trim(),
-        model: form.model.trim(),
-        year: form.year,
-        km: form.km,
-        fuel: form.fuel,
-        urban_percentage: form.urbanPercentage,
-      }, accessToken);
+      const output = await fetchCostEstimate(
+        form.source === 'listing' && form.sellerVehicleId
+          ? { seller_vehicle_id: form.sellerVehicleId }
+          : {
+              make: form.make.trim(),
+              model: form.model.trim(),
+              year: form.year,
+              km: form.km,
+              fuel: form.fuel,
+              urban_percentage: form.urbanPercentage,
+            },
+        accessToken,
+      );
       setResult(output);
       setStatus('success');
     } catch (err) {
@@ -142,85 +171,131 @@ export default function CostCalculator() {
                 <p className="mb-6 text-sm text-[#0F172A]/60">
                   {t('form.step1Subtitle')}
                 </p>
-                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label={t('field.make')}>
-                      <input
-                        required
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.make}
-                        onChange={(e) => update('make', e.target.value)}
-                        placeholder={t('field.makePlaceholder')}
-                      />
-                    </Field>
-                    <Field label={t('field.model')}>
-                      <input
-                        required
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.model}
-                        onChange={(e) => update('model', e.target.value)}
-                        placeholder={t('field.modelPlaceholder')}
-                      />
-                    </Field>
+
+                {isSeller && (
+                  <div className="mb-5 grid grid-cols-2 gap-2">
+                    {(['standard', 'listing'] as const).map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => update('source', value)}
+                        className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                          form.source === value
+                            ? 'border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB]'
+                            : 'border-gray-200 bg-[#F8FAFC] text-[#0F172A]/60 hover:border-[#2563EB]/40'
+                        }`}
+                      >
+                        {t(value === 'standard' ? 'source.standard' : 'source.myInventory')}
+                      </button>
+                    ))}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label={t('field.year')}>
-                      <input
-                        required
-                        type="number"
-                        inputMode="numeric"
-                        min={1990}
-                        max={new Date().getFullYear()}
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.year}
-                        onChange={(e) => updateNumber('year', e.target.value, form.year)}
-                      />
-                    </Field>
-                    <Field label={t('field.km')}>
-                      <input
-                        required
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        step={1000}
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.km}
-                        onChange={(e) => updateNumber('km', e.target.value, form.km)}
-                      />
-                    </Field>
+                )}
+
+                {isSeller && form.source === 'listing' ? (
+                  <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+                    {sellerVehicles.length === 0 ? (
+                      <p className="text-sm text-[#0F172A]/60">{t('source.noListings')}</p>
+                    ) : (
+                      <Field label={t('source.selectListing')}>
+                        <select
+                          required
+                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                          value={form.sellerVehicleId ?? ''}
+                          onChange={(e) => update('sellerVehicleId', e.target.value || null)}
+                        >
+                          <option value="" disabled>
+                            {t('source.selectListing')}
+                          </option>
+                          {sellerVehicles.map((v) => (
+                            <option key={v.id} value={v.id}>
+                              {v.make} {v.model} ({v.year}) · {v.price.toLocaleString()} {v.currency}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    )}
                   </div>
-                  <Field label={t('field.fuel')}>
-                    <select
-                      required
-                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                      value={form.fuel}
-                      onChange={(e) => update('fuel', e.target.value as FuelType)}
-                    >
-                      {FUEL_TYPES.map((value) => (
-                        <option key={value} value={value}>{t(`fuel.${value}`)}</option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label={t('field.drivingEnv')}>
-                    <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={form.urbanPercentage}
-                        onChange={(e) => update('urbanPercentage', Number(e.target.value))}
-                        className="w-full accent-[#2563EB]"
-                        aria-label={t('field.drivingEnv')}
-                      />
-                      <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
-                        <span>{t('field.rural')}</span>
-                        <span className="text-[#2563EB]">{form.urbanPercentage}% {t('field.urban')}</span>
-                        <span>{t('field.urban')}</span>
-                      </div>
+                ) : (
+                  <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label={t('field.make')}>
+                        <input
+                          required
+                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                          value={form.make}
+                          onChange={(e) => update('make', e.target.value)}
+                          placeholder={t('field.makePlaceholder')}
+                        />
+                      </Field>
+                      <Field label={t('field.model')}>
+                        <input
+                          required
+                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                          value={form.model}
+                          onChange={(e) => update('model', e.target.value)}
+                          placeholder={t('field.modelPlaceholder')}
+                        />
+                      </Field>
                     </div>
-                  </Field>
-                </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label={t('field.year')}>
+                        <input
+                          required
+                          type="number"
+                          inputMode="numeric"
+                          min={1990}
+                          max={new Date().getFullYear()}
+                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                          value={form.year}
+                          onChange={(e) => updateNumber('year', e.target.value, form.year)}
+                        />
+                      </Field>
+                      <Field label={t('field.km')}>
+                        <input
+                          required
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          step={1000}
+                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                          value={form.km}
+                          onChange={(e) => updateNumber('km', e.target.value, form.km)}
+                        />
+                      </Field>
+                    </div>
+                    <Field label={t('field.fuel')}>
+                      <select
+                        required
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.fuel}
+                        onChange={(e) => update('fuel', e.target.value as FuelType)}
+                      >
+                        {FUEL_TYPES.map((value) => (
+                          <option key={value} value={value}>{t(`fuel.${value}`)}</option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label={t('field.drivingEnv')}>
+                      <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={form.urbanPercentage}
+                          onChange={(e) => update('urbanPercentage', Number(e.target.value))}
+                          className="w-full accent-[#2563EB]"
+                          aria-label={t('field.drivingEnv')}
+                        />
+                        <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
+                          <span>{t('field.rural')}</span>
+                          <span className="text-[#2563EB]">{form.urbanPercentage}% {t('field.urban')}</span>
+                          <span>{t('field.urban')}</span>
+                        </div>
+                      </div>
+                    </Field>
+                  </div>
+                )}
 
                 <button
                   type="submit"

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useLanguage } from '@/lib/language-context';
+import type { AccountType } from '@/lib/auth-api';
 import AuthFormField, { authInputClassName } from '@/components/AuthFormField';
 import PageHero from '@/components/PageHero';
 import { LoaderIcon } from '@/components/icons';
@@ -16,6 +17,7 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [accountType, setAccountType] = useState<AccountType>('buyer');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,7 +26,7 @@ export default function SignupPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await signup(email, password, name.trim() || undefined);
+      await signup(email, password, name.trim() || undefined, accountType);
       router.push('/account');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('error.generic'));
@@ -70,6 +72,35 @@ export default function SignupPage() {
             />
           </AuthFormField>
           <p className="text-xs text-[#0F172A]/50">{t('auth.signup.passwordHint')}</p>
+
+          <AuthFormField label={t('auth.signup.accountType')}>
+            <div className="grid grid-cols-2 gap-3">
+              {(['buyer', 'seller'] as const).map((value) => {
+                const selected = accountType === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAccountType(value)}
+                    aria-pressed={selected}
+                    className={`rounded-lg border px-4 py-3 text-left transition-colors ${
+                      selected
+                        ? 'border-[#2563EB] bg-[#2563EB]/5'
+                        : 'border-gray-200 bg-[#F8FAFC] hover:border-[#2563EB]/40'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold text-[#0F172A]">
+                      {t(`auth.signup.accountType.${value}`)}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-[#0F172A]/60">
+                      {t(`auth.signup.accountType.${value}Hint`)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-[#0F172A]/50">{t('auth.signup.accountType.fixedNotice')}</p>
+          </AuthFormField>
 
           {error && (
             <p className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">

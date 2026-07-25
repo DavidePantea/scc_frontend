@@ -9,8 +9,12 @@ import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import {
   fetchComparisonResearchById,
   fetchCostEstimate,
+  fetchSellerVehicles,
   saveComparisonResearch,
-  FinalEstimate,
+  type ComparisonVehicleInput,
+  type FinalEstimate,
+  type SellerSide,
+  type SellerVehicle,
 } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
@@ -27,6 +31,8 @@ function confidenceColor(score: number): string {
   return '#DC2626';
 }
 
+type VehicleSource = 'standard' | 'listing';
+
 interface FormState {
   make: string;
   model: string;
@@ -34,6 +40,8 @@ interface FormState {
   km: number;
   fuel: FuelType;
   urbanPercentage: number;
+  source: VehicleSource;
+  sellerVehicleId: string | null;
 }
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -47,12 +55,36 @@ function emptyForm(): FormState {
     km: 150_000,
     fuel: 'diesel',
     urbanPercentage: 50,
+    source: 'standard',
+    sellerVehicleId: null,
   };
 }
 
 function parseNumberOrFallback(raw: string, fallback: number): number {
   const parsed = Number(raw);
   return raw === '' || Number.isNaN(parsed) ? fallback : parsed;
+}
+
+function toComparisonVehicleInput(form: FormState, output: FinalEstimate): ComparisonVehicleInput {
+  // Built from the actual estimate response, not the raw form - for a
+  // listing-sourced side the form never carries make/model (the backend
+  // resolves those from the listing), and output.vehicle is always fully
+  // shaped regardless of source.
+  if (form.source === 'listing' && output.vehicle.listing) {
+    return {
+      seller_vehicle_id: output.vehicle.listing.id,
+      km: output.vehicle.km,
+      urban_percentage: output.vehicle.urban_percentage,
+    };
+  }
+  return {
+    make: output.vehicle.make,
+    model: output.vehicle.model,
+    year: output.vehicle.year,
+    fuel: output.vehicle.fuel,
+    km: output.vehicle.km,
+    urban_percentage: output.vehicle.urban_percentage,
+  };
 }
 
 function Stepper({ step, labels }: { step: 1 | 2; labels: [string, string] }) {
@@ -104,11 +136,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function CompareCalculator() {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const researchId = searchParams.get('researchId');
+  const useListingA = searchParams.get('useListingA');
   const [step, setStep] = useState<1 | 2>(1);
+
+  const isSeller = user?.accountType === 'seller';
+  const [sellerVehicles, setSellerVehicles] = useState<SellerVehicle[]>([]);
 
   const [formA, setFormA] = useState<FormState>(emptyForm());
   const [formB, setFormB] = useState<FormState>(emptyForm());
@@ -118,6 +154,23 @@ export default function CompareCalculator() {
   const [resultB, setResultB] = useState<FinalEstimate | null>(null);
   const [errorA, setErrorA] = useState<string | null>(null);
   const [errorB, setErrorB] = useState<string | null>(null);
+
+  const [sellerSide, setSellerSide] = useState<SellerSide>(null);
+  const [sellingPoints, setSellingPoints] = useState<string[] | null>(null);
+  const [sellerModeOn, setSellerModeOn] = useState(false);
+
+  useEffect(() => {
+    if (!isSeller || !accessToken) return;
+    fetchSellerVehicles(accessToken)
+      .then(setSellerVehicles)
+      .catch(() => undefined);
+  }, [isSeller, accessToken]);
+
+  useEffect(() => {
+    if (!useListingA || !isSeller) return;
+    setFormA((prev) => ({ ...prev, source: 'listing', sellerVehicleId: useListingA }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useListingA, isSeller]);
 
   useEffect(() => {
     if (!researchId) return;
@@ -143,6 +196,8 @@ export default function CompareCalculator() {
           km: data.vehicleA.km,
           fuel: data.vehicleA.fuel as FuelType,
           urbanPercentage: data.vehicleA.urban_percentage,
+          source: 'standard',
+          sellerVehicleId: null,
         });
         setFormB({
           make: data.vehicleB.make,
@@ -151,9 +206,13 @@ export default function CompareCalculator() {
           km: data.vehicleB.km,
           fuel: data.vehicleB.fuel as FuelType,
           urbanPercentage: data.vehicleB.urban_percentage,
+          source: 'standard',
+          sellerVehicleId: null,
         });
         setResultA(data.resultA);
         setResultB(data.resultB);
+        setSellerSide(data.sellerSide);
+        setSellingPoints(data.sellingPoints);
         setStatusA('success');
         setStatusB('success');
         setStep(2);
@@ -199,17 +258,19 @@ export default function CompareCalculator() {
     setResult(null);
     try {
       const output = await fetchCostEstimate(
-        {
-          make: form.make.trim(),
-          model: form.model.trim(),
-          year: form.year,
-          km: form.km,
-          fuel: form.fuel,
-          urban_percentage: form.urbanPercentage,
-          // Saved as a pair below once both sides succeed, instead of each
-          // side also landing in the single-vehicle history.
-          skip_history: true,
-        },
+        form.source === 'listing' && form.sellerVehicleId
+          ? { seller_vehicle_id: form.sellerVehicleId, skip_history: true }
+          : {
+              make: form.make.trim(),
+              model: form.model.trim(),
+              year: form.year,
+              km: form.km,
+              fuel: form.fuel,
+              urban_percentage: form.urbanPercentage,
+              // Saved as a pair below once both sides succeed, instead of
+              // each side also landing in the single-vehicle history.
+              skip_history: true,
+            },
         accessToken,
       );
       setResult(output);
@@ -224,6 +285,9 @@ export default function CompareCalculator() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setSellerSide(null);
+    setSellingPoints(null);
+    setSellerModeOn(false);
     const [outputA, outputB] = await Promise.all([
       runSide(formA, setStatusA, setResultA, setErrorA),
       runSide(formB, setStatusB, setResultB, setErrorB),
@@ -231,29 +295,19 @@ export default function CompareCalculator() {
     if (outputA && outputB) {
       setStep(2);
       if (accessToken) {
-        void saveComparisonResearch(
+        const saved = await saveComparisonResearch(
           {
-            vehicleA: {
-              make: formA.make.trim(),
-              model: formA.model.trim(),
-              year: formA.year,
-              km: formA.km,
-              fuel: formA.fuel,
-              urban_percentage: formA.urbanPercentage,
-            },
-            vehicleB: {
-              make: formB.make.trim(),
-              model: formB.model.trim(),
-              year: formB.year,
-              km: formB.km,
-              fuel: formB.fuel,
-              urban_percentage: formB.urbanPercentage,
-            },
+            vehicleA: toComparisonVehicleInput(formA, outputA),
+            vehicleB: toComparisonVehicleInput(formB, outputB),
             resultA: outputA,
             resultB: outputB,
           },
           accessToken,
         );
+        if (saved) {
+          setSellerSide(saved.sellerSide);
+          setSellingPoints(saved.sellingPoints);
+        }
       }
     }
   }
@@ -311,91 +365,136 @@ export default function CompareCalculator() {
                   </h2>
                   <p className="mb-6 text-sm text-[#0F172A]/60">{side.subtitle}</p>
 
-                  <div className="space-y-5">
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label={t('field.make')}>
-                        <input
-                          required
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={side.form.make}
-                          onChange={(e) => updateForm(side.key, { make: e.target.value })}
-                          placeholder={t('field.makePlaceholder')}
-                        />
-                      </Field>
-                      <Field label={t('field.model')}>
-                        <input
-                          required
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={side.form.model}
-                          onChange={(e) => updateForm(side.key, { model: e.target.value })}
-                          placeholder={t('field.modelPlaceholder')}
-                        />
-                      </Field>
+                  {isSeller && (
+                    <div className="mb-5 grid grid-cols-2 gap-2">
+                      {(['standard', 'listing'] as const).map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => updateForm(side.key, { source: value })}
+                          className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                            side.form.source === value
+                              ? 'border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB]'
+                              : 'border-gray-200 bg-[#F8FAFC] text-[#0F172A]/60 hover:border-[#2563EB]/40'
+                          }`}
+                        >
+                          {t(value === 'standard' ? 'source.standard' : 'source.myInventory')}
+                        </button>
+                      ))}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label={t('field.year')}>
-                        <input
-                          required
-                          type="number"
-                          inputMode="numeric"
-                          min={1990}
-                          max={new Date().getFullYear()}
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={side.form.year}
-                          onChange={(e) =>
-                            updateForm(side.key, { year: parseNumberOrFallback(e.target.value, side.form.year) })
-                          }
-                        />
-                      </Field>
-                      <Field label={t('field.km')}>
-                        <input
-                          required
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
-                          step={1000}
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={side.form.km}
-                          onChange={(e) =>
-                            updateForm(side.key, { km: parseNumberOrFallback(e.target.value, side.form.km) })
-                          }
-                        />
-                      </Field>
+                  )}
+
+                  {isSeller && side.form.source === 'listing' ? (
+                    <div className="space-y-5">
+                      {sellerVehicles.length === 0 ? (
+                        <p className="text-sm text-[#0F172A]/60">{t('source.noListings')}</p>
+                      ) : (
+                        <Field label={t('source.selectListing')}>
+                          <select
+                            required
+                            className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                            value={side.form.sellerVehicleId ?? ''}
+                            onChange={(e) => updateForm(side.key, { sellerVehicleId: e.target.value || null })}
+                          >
+                            <option value="" disabled>
+                              {t('source.selectListing')}
+                            </option>
+                            {sellerVehicles.map((v) => (
+                              <option key={v.id} value={v.id}>
+                                {v.make} {v.model} ({v.year}) · {v.price.toLocaleString()} {v.currency}
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
+                      )}
                     </div>
-                    <Field label={t('field.fuel')}>
-                      <select
-                        required
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={side.form.fuel}
-                        onChange={(e) => updateForm(side.key, { fuel: e.target.value as FuelType })}
-                      >
-                        {FUEL_TYPES.map((value) => (
-                          <option key={value} value={value}>
-                            {t(`fuel.${value}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field label={t('field.drivingEnv')}>
-                      <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={side.form.urbanPercentage}
-                          onChange={(e) => updateForm(side.key, { urbanPercentage: Number(e.target.value) })}
-                          className="w-full accent-[#2563EB]"
-                          aria-label={t('field.drivingEnv')}
-                        />
-                        <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
-                          <span>{t('field.rural')}</span>
-                          <span className="text-[#2563EB]">{side.form.urbanPercentage}% {t('field.urban')}</span>
-                          <span>{t('field.urban')}</span>
-                        </div>
+                  ) : (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-2 gap-4">
+                        <Field label={t('field.make')}>
+                          <input
+                            required
+                            className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                            value={side.form.make}
+                            onChange={(e) => updateForm(side.key, { make: e.target.value })}
+                            placeholder={t('field.makePlaceholder')}
+                          />
+                        </Field>
+                        <Field label={t('field.model')}>
+                          <input
+                            required
+                            className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                            value={side.form.model}
+                            onChange={(e) => updateForm(side.key, { model: e.target.value })}
+                            placeholder={t('field.modelPlaceholder')}
+                          />
+                        </Field>
                       </div>
-                    </Field>
-                  </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <Field label={t('field.year')}>
+                          <input
+                            required
+                            type="number"
+                            inputMode="numeric"
+                            min={1990}
+                            max={new Date().getFullYear()}
+                            className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                            value={side.form.year}
+                            onChange={(e) =>
+                              updateForm(side.key, { year: parseNumberOrFallback(e.target.value, side.form.year) })
+                            }
+                          />
+                        </Field>
+                        <Field label={t('field.km')}>
+                          <input
+                            required
+                            type="number"
+                            inputMode="numeric"
+                            min={0}
+                            step={1000}
+                            className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                            value={side.form.km}
+                            onChange={(e) =>
+                              updateForm(side.key, { km: parseNumberOrFallback(e.target.value, side.form.km) })
+                            }
+                          />
+                        </Field>
+                      </div>
+                      <Field label={t('field.fuel')}>
+                        <select
+                          required
+                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                          value={side.form.fuel}
+                          onChange={(e) => updateForm(side.key, { fuel: e.target.value as FuelType })}
+                        >
+                          {FUEL_TYPES.map((value) => (
+                            <option key={value} value={value}>
+                              {t(`fuel.${value}`)}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field label={t('field.drivingEnv')}>
+                        <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={side.form.urbanPercentage}
+                            onChange={(e) => updateForm(side.key, { urbanPercentage: Number(e.target.value) })}
+                            className="w-full accent-[#2563EB]"
+                            aria-label={t('field.drivingEnv')}
+                          />
+                          <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
+                            <span>{t('field.rural')}</span>
+                            <span className="text-[#2563EB]">{side.form.urbanPercentage}% {t('field.urban')}</span>
+                            <span>{t('field.urban')}</span>
+                          </div>
+                        </div>
+                      </Field>
+                    </div>
+                  )}
 
                   {side.error && (
                     <p className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-red-600">
@@ -422,6 +521,55 @@ export default function CompareCalculator() {
 
         {step === 2 && (
           <div>
+            {sellerSide && (
+              <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-bold text-[#0F172A]">{t('seller.mode.toggleLabel')}</p>
+                    <p className="mt-0.5 text-xs text-[#0F172A]/50">{t('seller.mode.buyerNote')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={sellerModeOn}
+                    onClick={() => setSellerModeOn((v) => !v)}
+                    className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
+                      sellerModeOn ? 'bg-[#2563EB]' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                        sellerModeOn ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {sellerModeOn && (
+                  <div className="mt-5 border-t border-gray-100 pt-5">
+                    <h3 className="font-heading mb-3 text-sm font-semibold text-[#0F172A]">
+                      {t('seller.mode.sellingPoints')}
+                    </h3>
+                    {sellingPoints && sellingPoints.length > 0 ? (
+                      <ul className="space-y-2">
+                        {sellingPoints.map((point, idx) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-2 rounded-lg bg-[#2563EB]/5 px-3 py-2 text-sm text-[#0F172A]"
+                          >
+                            <CheckCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#2563EB]" />
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-[#0F172A]/60">{t('seller.mode.none')}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {sides.map((side) => (
                 <div key={side.key} className="flex flex-col gap-6">
@@ -431,8 +579,17 @@ export default function CompareCalculator() {
                       <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
                       2. {t('results.title')}
                     </h2>
-                    <p className="mb-6 text-sm font-semibold text-[#2563EB]">
-                      {side.form.make} {side.form.model} · {side.form.year}
+                    <p className="mb-6 flex items-center gap-2 text-sm font-semibold text-[#2563EB]">
+                      {/* A listing-sourced side never has form.make/model set
+                          (only sellerVehicleId) - the result's own vehicle
+                          field is always correct regardless of source. */}
+                      {side.result?.vehicle.make ?? side.form.make} {side.result?.vehicle.model ?? side.form.model} ·{' '}
+                      {side.result?.vehicle.year ?? side.form.year}
+                      {sellerSide === side.key && (
+                        <span className="rounded-full bg-[#2563EB]/10 px-2 py-0.5 text-xs font-bold">
+                          {t('seller.mode.yourCar')}
+                        </span>
+                      )}
                     </p>
 
                     {side.result && (
@@ -526,6 +683,11 @@ export default function CompareCalculator() {
                               </span>
                             )}
                           </p>
+                          {side.result.vehicle.listing && (
+                            <p className="mt-1 text-sm font-semibold text-[#0F172A]/60">
+                              {side.result.vehicle.listing.price.toLocaleString()} {side.result.vehicle.listing.currency}
+                            </p>
+                          )}
                         </div>
 
                         <div className="w-full max-w-xs sm:w-56">

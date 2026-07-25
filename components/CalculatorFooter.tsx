@@ -44,6 +44,11 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
                     </span>
                   )}
                 </p>
+                {result.vehicle.listing && (
+                  <p className="mt-1 text-sm font-semibold text-[#0F172A]/60">
+                    {result.vehicle.listing.price.toLocaleString()} {result.vehicle.listing.currency}
+                  </p>
+                )}
               </div>
 
               <div className="w-full max-w-xs sm:w-56">

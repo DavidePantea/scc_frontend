@@ -11,6 +11,14 @@ export default function AccountNav() {
   if (status === 'authenticated' && user) {
     return (
       <div className="flex items-center gap-3">
+        {user.accountType === 'seller' && (
+          <Link
+            href="/seller"
+            className="hidden sm:inline rounded-sm text-sm font-semibold text-[#0F172A] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+          >
+            {t('nav.sellerDashboard')}
+          </Link>
+        )}
         <Link
           href="/account"
           className="hidden sm:inline rounded-sm text-sm font-semibold text-[#0F172A] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
