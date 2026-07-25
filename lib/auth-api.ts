@@ -1,3 +1,5 @@
+import { translate } from './language-context';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -21,27 +23,27 @@ const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL;
 function friendlyErrorMessage(status: number, code: string | undefined): string {
   switch (code) {
     case "invalid_credentials":
-      return "Email sau parolă incorectă.";
+      return translate('auth.error.invalidCredentials');
     case "email_already_registered":
-      return "Există deja un cont cu acest email.";
+      return translate('auth.error.emailTaken');
     case "invalid_request":
-      return "Te rugăm să completezi corect toate câmpurile (email valid, parolă de minim 8 caractere).";
+      return translate('auth.error.invalidRequest');
     default:
       break;
   }
   switch (status) {
     case 401:
-      return "Sesiunea ta a expirat. Te rugăm să te autentifici din nou.";
+      return translate('auth.error.sessionExpired');
     case 429:
-      return "Prea multe încercări. Te rugăm să încerci din nou peste câteva minute.";
+      return translate('auth.error.tooManyAttempts');
     default:
-      return "A apărut o eroare neașteptată. Te rugăm să încerci din nou.";
+      return translate('error.generic');
   }
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   if (!AUTH_API_URL) {
-    throw new Error("Adresa serviciului de autentificare nu este configurată (NEXT_PUBLIC_AUTH_API_URL).");
+    throw new Error(translate('auth.error.notConfigured'));
   }
 
   let response: Response;
@@ -52,7 +54,7 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error("Nu am putut contacta serviciul de autentificare. Verifică-ți conexiunea la internet.");
+    throw new Error(translate('auth.error.networkError'));
   }
 
   let payload: unknown = null;
@@ -86,7 +88,7 @@ export async function logoutRequest(refreshToken: string): Promise<void> {
 
 export async function meRequest(accessToken: string): Promise<AuthUser> {
   if (!AUTH_API_URL) {
-    throw new Error("Adresa serviciului de autentificare nu este configurată (NEXT_PUBLIC_AUTH_API_URL).");
+    throw new Error(translate('auth.error.notConfigured'));
   }
   const response = await fetch(`${AUTH_API_URL}/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },

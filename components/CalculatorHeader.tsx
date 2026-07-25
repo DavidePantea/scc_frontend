@@ -1,6 +1,10 @@
 'use client';
 
+import { useLanguage } from '@/lib/language-context';
+
 export default function CalculatorHeader() {
+  const { t } = useLanguage();
+
   return (
     <div className="relative w-full pt-16 pb-40 lg:pt-24 lg:pb-48 overflow-hidden bg-[#F8FAFC]">
       
@@ -20,12 +24,11 @@ export default function CalculatorHeader() {
       <div className="relative z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <header className="text-center lg:text-left">
           <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-5xl text-white drop-shadow-lg">
-            DE LA SECOND-HAND <br className="hidden sm:block" />
-            <span className="text-[#2563EB]">LA SMART CHOICE</span>
+            {t('hero.titleLine1')} <br className="hidden sm:block" />
+            <span className="text-[#2563EB]">{t('hero.titleLine2')}</span>
           </h1>
           <p className="mt-4 max-w-2xl text-base sm:text-lg text-white mx-auto lg:mx-0 font-medium drop-shadow-md">
-            Compară costul total de utilizare și descoperă cât de avantajos este
-            să conduci un vehicul nou.
+            {t('hero.subtitle')}
           </p>
         </header>
       </div>

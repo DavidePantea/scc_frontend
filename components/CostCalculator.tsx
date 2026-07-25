@@ -5,20 +5,15 @@ import CalculatorHeader from './CalculatorHeader';
 import CalculatorFooter from './CalculatorFooter';
 import CostBreakdownBars from './CostBreakdownBars';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
-import { FuelType, FUEL_LABELS } from '../lib/calculator-logic';
+import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import { fetchCostEstimate, FinalEstimate } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
+import { useLanguage } from '../lib/language-context';
 
 const SEVERITY_STYLES: Record<string, string> = {
   low: 'bg-[#2563EB]/10 text-[#2563EB]',
   medium: 'bg-[#F97316]/10 text-[#F97316]',
   high: 'bg-red-100 text-red-700',
-};
-
-const SEVERITY_LABELS: Record<string, string> = {
-  low: 'Risc scăzut',
-  medium: 'Risc mediu',
-  high: 'Risc ridicat',
 };
 
 interface FormState {
@@ -34,6 +29,7 @@ type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export default function CostCalculator() {
   const { accessToken } = useAuth();
+  const { t } = useLanguage();
   const [form, setForm] = useState<FormState>({
     make: '',
     model: '',
@@ -45,6 +41,12 @@ export default function CostCalculator() {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<FinalEstimate | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const severityLabels: Record<string, string> = {
+    low: t('severity.low'),
+    medium: t('severity.medium'),
+    high: t('severity.high'),
+  };
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -73,7 +75,7 @@ export default function CostCalculator() {
       setResult(output);
       setStatus('success');
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'A apărut o eroare neașteptată. Te rugăm să încerci din nou.');
+      setErrorMessage(err instanceof Error ? err.message : t('error.generic'));
       setStatus('error');
     }
   }
@@ -94,34 +96,34 @@ export default function CostCalculator() {
             <form onSubmit={handleSubmit} className="flex lg:h-[40rem]">
               <section className="flex w-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
                 <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
-                  1. Vehiculul tău actual
+                  1. {t('form.step1Title')}
                 </h2>
                 <p className="mb-6 text-sm text-[#0F172A]/60">
-                  Completează detaliile de mai jos ca să vedem cât te costă cu adevărat mașina ta.
+                  {t('form.step1Subtitle')}
                 </p>
                 <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
                   <div className="grid grid-cols-2 gap-4">
-                    <Field label="Marcă">
+                    <Field label={t('field.make')}>
                       <input
                         required
                         className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                         value={form.make}
                         onChange={(e) => update('make', e.target.value)}
-                        placeholder="ex. BMW"
+                        placeholder={t('field.makePlaceholder')}
                       />
                     </Field>
-                    <Field label="Model">
+                    <Field label={t('field.model')}>
                       <input
                         required
                         className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                         value={form.model}
                         onChange={(e) => update('model', e.target.value)}
-                        placeholder="ex. X5"
+                        placeholder={t('field.modelPlaceholder')}
                       />
                     </Field>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <Field label="An fabricație">
+                    <Field label={t('field.year')}>
                       <input
                         required
                         type="number"
@@ -133,7 +135,7 @@ export default function CostCalculator() {
                         onChange={(e) => updateNumber('year', e.target.value, form.year)}
                       />
                     </Field>
-                    <Field label="Kilometraj (km)">
+                    <Field label={t('field.km')}>
                       <input
                         required
                         type="number"
@@ -146,19 +148,19 @@ export default function CostCalculator() {
                       />
                     </Field>
                   </div>
-                  <Field label="Tip combustibil">
+                  <Field label={t('field.fuel')}>
                     <select
                       required
                       className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                       value={form.fuel}
                       onChange={(e) => update('fuel', e.target.value as FuelType)}
                     >
-                      {Object.entries(FUEL_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
+                      {FUEL_TYPES.map((value) => (
+                        <option key={value} value={value}>{t(`fuel.${value}`)}</option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Mediu de condus predominant">
+                  <Field label={t('field.drivingEnv')}>
                     <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
                       <input
                         type="range"
@@ -168,12 +170,12 @@ export default function CostCalculator() {
                         value={form.urbanPercentage}
                         onChange={(e) => update('urbanPercentage', Number(e.target.value))}
                         className="w-full accent-[#2563EB]"
-                        aria-label="Procent condus în mediul urban"
+                        aria-label={t('field.drivingEnv')}
                       />
                       <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
-                        <span>Rural</span>
-                        <span className="text-[#2563EB]">{form.urbanPercentage}% urban</span>
-                        <span>Urban</span>
+                        <span>{t('field.rural')}</span>
+                        <span className="text-[#2563EB]">{form.urbanPercentage}% {t('field.urban')}</span>
+                        <span>{t('field.urban')}</span>
                       </div>
                     </div>
                   </Field>
@@ -185,7 +187,7 @@ export default function CostCalculator() {
                   className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {status === 'loading' && <LoaderIcon className="h-4 w-4 animate-spin" />}
-                  {status === 'loading' ? 'Se calculează...' : 'Calculează estimarea'}
+                  {status === 'loading' ? t('action.calculating') : t('action.calculate')}
                 </button>
               </section>
             </form>
@@ -196,14 +198,14 @@ export default function CostCalculator() {
             <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[40rem]">
               <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
-                2. Analiza Estimării
+                2. {t('results.title')}
               </h2>
 
               {status === 'idle' && (
                 <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
                   <ScaleIcon className="h-8 w-8 text-[#0F172A]/20" />
                   <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    Completează detaliile mașinii tale și apasă „Calculează estimarea&rdquo; pentru a vedea analiza completă.
+                    {t('results.idle')}
                   </p>
                 </div>
               )}
@@ -212,7 +214,7 @@ export default function CostCalculator() {
                 <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
                   <LoaderIcon className="h-8 w-8 animate-spin text-[#2563EB]" />
                   <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    Se generează estimarea ta. Poate dura câteva secunde.
+                    {t('results.loading')}
                   </p>
                 </div>
               )}
@@ -238,7 +240,7 @@ export default function CostCalculator() {
                     {result.summary && (
                       <div className="pt-5 border-t border-gray-100">
                         <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
-                          Detalii
+                          {t('results.details')}
                         </h3>
                         <p className="text-sm leading-relaxed text-[#0F172A]/70">
                           {result.summary}
@@ -256,7 +258,7 @@ export default function CostCalculator() {
             <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[40rem]">
               <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
                 <AlertIcon className="h-5 w-5 text-[#F97316]" />
-                Probleme frecvente
+                {t('problems.title')}
               </h2>
               {status === 'success' && result?.engine.motor_type && (
                 <p className="mb-5 text-sm text-[#0F172A]/50">{result.engine.motor_type}</p>
@@ -266,7 +268,7 @@ export default function CostCalculator() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
                   <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
                   <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    Problemele frecvente ale motorului vor apărea aici după calcularea estimării.
+                    {t('problems.idle')}
                   </p>
                 </div>
               )}
@@ -275,7 +277,7 @@ export default function CostCalculator() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
                   <LoaderIcon className="h-8 w-8 animate-spin text-[#2563EB]" />
                   <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    Se identifică problemele frecvente...
+                    {t('problems.loading')}
                   </p>
                 </div>
               )}
@@ -284,7 +286,7 @@ export default function CostCalculator() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
                   <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
                   <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    Analiza nu a putut fi generată.
+                    {t('problems.error')}
                   </p>
                 </div>
               )}
@@ -301,7 +303,7 @@ export default function CostCalculator() {
                               <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
                             </div>
                             <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
-                              {SEVERITY_LABELS[problem.severity] ?? problem.severity}
+                              {severityLabels[problem.severity] ?? problem.severity}
                             </span>
                           </div>
                           {problem.description && (
@@ -320,7 +322,7 @@ export default function CostCalculator() {
                   <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
                     <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
                     <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                      Nu au fost identificate probleme frecvente notabile.
+                      {t('problems.none')}
                     </p>
                   </div>
                 )

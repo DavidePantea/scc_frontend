@@ -1,3 +1,5 @@
+import { translate } from './language-context';
+
 export interface EstimateRequest {
   make: string;
   model: string;
@@ -59,19 +61,19 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 function friendlyErrorMessage(status: number): string {
   switch (status) {
     case 400:
-      return 'Te rugăm să completezi toate câmpurile: marcă, model, an, kilometraj și tip combustibil.';
+      return translate('api.error.badRequest');
     case 500:
-      return 'Serviciul de estimare este momentan indisponibil. Te rugăm să încerci din nou puțin mai târziu.';
+      return translate('api.error.serviceUnavailable');
     case 502:
-      return 'Nu am reușit să generăm o estimare de cost chiar acum. Te rugăm să încerci din nou.';
+      return translate('api.error.estimateFailed');
     default:
-      return 'A apărut o eroare neașteptată. Te rugăm să încerci din nou.';
+      return translate('error.generic');
   }
 }
 
 export async function fetchCostEstimate(input: EstimateRequest, accessToken?: string | null): Promise<FinalEstimate> {
   if (!API_BASE_URL) {
-    throw new Error('Adresa serviciului de estimare nu este configurată (NEXT_PUBLIC_API_URL).');
+    throw new Error(translate('api.error.notConfigured'));
   }
 
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
@@ -87,7 +89,7 @@ export async function fetchCostEstimate(input: EstimateRequest, accessToken?: st
       body: JSON.stringify(input),
     });
   } catch {
-    throw new Error('Nu am putut contacta serviciul de estimare. Verifică-ți conexiunea la internet.');
+    throw new Error(translate('api.error.networkError'));
   }
 
   if (!response.ok) {
@@ -98,11 +100,11 @@ export async function fetchCostEstimate(input: EstimateRequest, accessToken?: st
   try {
     body = await response.json();
   } catch {
-    throw new Error('Răspunsul primit de la serviciul de estimare nu a putut fi citit.');
+    throw new Error(translate('api.error.unreadableResponse'));
   }
 
   if (!body || !Array.isArray(body.cost_breakdown) || !body.total_estimated_cost) {
-    throw new Error('Răspuns neașteptat de la serviciul de estimare.');
+    throw new Error(translate('api.error.unexpectedResponse'));
   }
 
   return body;

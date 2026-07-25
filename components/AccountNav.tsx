@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { useLanguage } from '@/lib/language-context';
 
 export default function AccountNav() {
   const { status, user, logout } = useAuth();
+  const { t } = useLanguage();
 
   if (status === 'authenticated' && user) {
     return (
@@ -22,7 +24,7 @@ export default function AccountNav() {
           }}
           className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-[#0F172A] transition-all hover:bg-gray-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2563EB]/20"
         >
-          Deconectare
+          {t('account.logout')}
         </button>
       </div>
     );
@@ -34,13 +36,13 @@ export default function AccountNav() {
         href="/login"
         className="rounded-xl px-4 py-2.5 text-sm font-bold text-[#0F172A] transition-all hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2563EB]/20"
       >
-        Autentificare
+        {t('account.login')}
       </Link>
       <Link
         href="/signup"
         className="rounded-xl bg-[#F97316] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30"
       >
-        Creează cont
+        {t('account.signup')}
       </Link>
     </div>
   );
