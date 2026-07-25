@@ -6,6 +6,8 @@ export const translations = {
   'nav.advantages': { ro: 'Avantaje', en: 'Advantages' },
   'nav.contact': { ro: 'Contact', en: 'Contact' },
   'nav.sellerDashboard': { ro: 'Panou vânzător', en: 'Seller dashboard' },
+  'nav.myAccount': { ro: 'Contul meu', en: 'My account' },
+  'nav.menu': { ro: 'Meniu', en: 'Menu' },
 
   'account.login': { ro: 'Autentificare', en: 'Log in' },
   'account.signup': { ro: 'Creează cont', en: 'Sign up' },
