@@ -55,7 +55,7 @@ lib/
   auth-api.ts          Typed fetch wrappers around the auth-service endpoints
   auth-context.tsx     In-memory auth state (React context) + login/signup/logout
   calculator-logic.ts  Shared types/constants (fuel types, currency formatting)
-public/                Static assets (banner image, default Next.js icons)
+public/                Static assets (default Next.js icons)
 ```
 
 ## Tech stack
