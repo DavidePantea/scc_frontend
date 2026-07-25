@@ -172,6 +172,14 @@ export const translations = {
     en: "You don't have any saved estimates yet. Calculate a car's cost to see it here.",
   },
   'account.estimates.cta': { ro: 'Mergi la calculator', en: 'Go to calculator' },
+  'account.estimates.loading': { ro: 'Se încarcă estimările tale...', en: 'Loading your estimates...' },
+  'account.estimates.typeSingle': { ro: 'Estimare simplă', en: 'Single estimate' },
+  'account.estimates.typeComparison': { ro: 'Comparație', en: 'Comparison' },
+
+  'history.loginRequired': {
+    ro: 'Trebuie să fii autentificat pentru a vedea această estimare salvată.',
+    en: 'You need to be logged in to view this saved estimate.',
+  },
 
   'auth.error.invalidCredentials': { ro: 'Email sau parolă incorectă.', en: 'Incorrect email or password.' },
   'auth.error.emailTaken': {

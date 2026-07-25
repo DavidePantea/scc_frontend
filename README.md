@@ -120,6 +120,32 @@ opaque `refreshToken`.
   not a Next.js `proxy.ts` (the server has nothing to inspect on the request
   since there's no cookie).
 
+## Saved research history
+
+When the user is logged in, every research they run is saved server-side and
+listed on `/account`:
+
+- A single-vehicle lookup on `/` (`CostCalculator`) is saved automatically by
+  the backend whenever `fetchCostEstimate` is called with an access token —
+  no separate save call from the frontend.
+- A two-vehicle comparison on `/compare` (`CompareCalculator`) runs both
+  sides with `skip_history: true` (so each side doesn't also get saved on its
+  own), then calls `saveComparisonResearch` once both sides succeed to save
+  the pair as a single history entry.
+- `/account` fetches the merged list via `fetchResearchHistory` and links
+  each entry to `/?researchId=<id>` (simple) or `/compare?researchId=<id>`
+  (comparison). Both pages read `researchId` from the URL (`useSearchParams`,
+  which is why `app/page.tsx` and `app/compare/page.tsx` wrap their client
+  component in `<Suspense>`) and fetch the saved result directly — the form
+  is pre-filled and the results are shown immediately, with no new
+  `/api/estimate` call.
+
+Because the access token only lives in memory, following one of these links
+from `/account` only works as a client-side navigation within the same
+session (e.g. clicking the link) — reloading the page on a `researchId` URL
+loses the token like anywhere else in the app, and the page shows a
+login-required message instead.
+
 ## Deploying / configuring env vars
 
 This project is set up to deploy on [Vercel](https://vercel.com):
