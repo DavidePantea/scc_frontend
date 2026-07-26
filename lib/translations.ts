@@ -403,6 +403,79 @@ export const translations = {
     en: 'See in seconds whether your current car really is worth the costs.',
   },
   'advantages.ctaButton': { ro: 'Calculează estimarea', en: 'Calculate estimate' },
+
+  'nav.faq': { ro: 'Întrebări frecvente', en: 'FAQ' },
+
+  'faq.heroTitle': { ro: 'Întrebări Frecvente', en: 'Frequently Asked Questions' },
+  'faq.heroSubtitle': {
+    ro: 'Răspunsuri rapide la cele mai comune întrebări despre SmartCarCompare.',
+    en: 'Quick answers to the most common questions about SmartCarCompare.',
+  },
+
+  'faq.whatIsIt.q': { ro: 'Ce este SmartCarCompare?', en: 'What is SmartCarCompare?' },
+  'faq.whatIsIt.a': {
+    ro: 'SmartCarCompare este un instrument care estimează costul total de utilizare al unei mașini — combustibil, întreținere, asigurare, taxe și depreciere — pe baza mărcii, modelului, anului, kilometrajului și tipului de combustibil.',
+    en: 'SmartCarCompare is a tool that estimates a car’s total cost of ownership — fuel, maintenance, insurance, taxes, and depreciation — based on its make, model, year, mileage, and fuel type.',
+  },
+  'faq.accuracy.q': { ro: 'Cât de exacte sunt estimările?', en: 'How accurate are the estimates?' },
+  'faq.accuracy.a': {
+    ro: 'Estimările sunt generate cu ajutorul AI și verificate printr-un proces suplimentar, care produce un scor de încredere. Totuși, acestea rămân orientative și nu constituie consultanță financiară — costurile reale pot varia.',
+    en: 'Estimates are AI-generated and run through an extra verification step that produces a confidence score. They remain indicative, though, and do not constitute financial advice — actual costs may vary.',
+  },
+  'faq.free.q': { ro: 'Este gratuit?', en: 'Is it free?' },
+  'faq.free.a': {
+    ro: 'Da. Poți calcula estimări de cost și poți compara vehicule fără costuri și fără a avea nevoie de un cont.',
+    en: 'Yes. You can calculate cost estimates and compare vehicles free of charge and without needing an account.',
+  },
+  'faq.account.q': { ro: 'Am nevoie de un cont?', en: 'Do I need an account?' },
+  'faq.account.a': {
+    ro: 'Nu, poți folosi calculatorul și comparația fără cont. Dacă îți creezi unul, estimările tale sunt salvate automat și le poți revedea oricând din pagina „Contul meu”.',
+    en: "No, you can use the calculator and comparison without an account. If you create one, your estimates are saved automatically and you can revisit them anytime from the \"My account\" page.",
+  },
+  'faq.compare.q': { ro: 'Cum funcționează comparația a două mașini?', en: 'How does comparing two cars work?' },
+  'faq.compare.a': {
+    ro: 'Introduci detaliile ambelor vehicule, iar noi calculăm estimările pentru fiecare și le afișăm una lângă alta, ca să vezi rapid care este alegerea mai avantajoasă.',
+    en: 'You enter the details of both vehicles, and we calculate estimates for each and show them side by side so you can quickly see which is the smarter choice.',
+  },
+  'faq.dataSource.q': { ro: 'De unde provin datele folosite?', en: 'Where does the underlying data come from?' },
+  'faq.dataSource.a': {
+    ro: 'Estimările combină date generale despre piața auto cu specificațiile mașinii introduse de tine, procesate printr-un model AI antrenat să identifice tipare de cost și probleme frecvente de motor.',
+    en: "Estimates combine general automotive market data with the specs you enter, processed by an AI model trained to spot cost patterns and common engine issues.",
+  },
+  'faq.seller.q': { ro: 'Ce este modul vânzător?', en: 'What is seller mode?' },
+  'faq.seller.a': {
+    ro: 'Dacă ai un cont de vânzător, poți adăuga mașinile tale în inventar, le poți cerceta sau compara direct, iar în modul vânzător primești și argumente de vânzare generate automat.',
+    en: 'If you have a seller account, you can add your cars to your inventory, research or compare them directly, and seller mode also gives you automatically generated selling points.',
+  },
+  'faq.privacy.q': { ro: 'Datele mele sunt private?', en: 'Is my data private?' },
+  'faq.privacy.a': {
+    ro: 'Estimările salvate sunt vizibile doar în contul tău. Nu publicăm și nu partajăm datele introduse cu terți fără acordul tău.',
+    en: "Saved estimates are only visible in your own account. We don't publish or share the data you enter with third parties without your consent.",
+  },
+
+  'faq.complaint.title': { ro: 'Nu ai găsit răspunsul căutat?', en: "Didn't find what you were looking for?" },
+  'faq.complaint.subtitle': {
+    ro: 'Scrie-ne o întrebare, o sesizare sau o problemă întâmpinată și echipa noastră o va analiza.',
+    en: 'Send us a question, a complaint, or an issue you ran into, and our team will look into it.',
+  },
+  'faq.complaint.messageLabel': { ro: 'Mesajul tău', en: 'Your message' },
+  'faq.complaint.messagePlaceholder': {
+    ro: 'Descrie pe scurt întrebarea sau problema ta...',
+    en: 'Briefly describe your question or issue...',
+  },
+  'faq.complaint.emailLabel': { ro: 'Email (opțional, pentru răspuns)', en: 'Email (optional, for a reply)' },
+  'faq.complaint.emailPlaceholder': { ro: 'nume@exemplu.com', en: 'name@example.com' },
+  'faq.complaint.submit': { ro: 'Trimite sesizarea', en: 'Submit' },
+  'faq.complaint.errorRequired': {
+    ro: 'Te rugăm să scrii un mesaj înainte de a trimite.',
+    en: 'Please write a message before submitting.',
+  },
+  'faq.complaint.successTitle': { ro: 'Mulțumim!', en: 'Thank you!' },
+  'faq.complaint.successDesc': {
+    ro: 'Am primit mesajul tău și echipa noastră îl va analiza cât de curând.',
+    en: "We've received your message and our team will review it shortly.",
+  },
+  'faq.complaint.another': { ro: 'Trimite un alt mesaj', en: 'Send another message' },
 } as const satisfies Record<string, Record<Language, string>>;
 
 export type TranslationKey = keyof typeof translations;

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useLanguage } from '@/lib/language-context';
 
 export default function Footer() {
@@ -27,6 +28,9 @@ export default function Footer() {
               {t('footer.usefulLinks')}
             </h4>
             <ul className="space-y-3 text-sm font-medium text-white/70">
+              <li>
+                <Link href="/faq" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">{t('nav.faq')}</Link>
+              </li>
               <li>
                 <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">{t('footer.about')}</a>
               </li>

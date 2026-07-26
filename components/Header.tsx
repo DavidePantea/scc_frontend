@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '/compare', key: 'nav.compare' },
   { href: '/how-it-works', key: 'nav.howItWorks' },
   { href: '/advantages', key: 'nav.advantages' },
+  { href: '/faq', key: 'nav.faq' },
   { href: '#', key: 'nav.contact' },
 ] as const;
 
