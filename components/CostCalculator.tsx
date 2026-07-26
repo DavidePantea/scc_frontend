@@ -7,6 +7,7 @@ import CalculatorFooter from './CalculatorFooter';
 import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
 import AdvancedOptionsFields from './AdvancedOptionsFields';
+import LoadingMessages from './LoadingMessages';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import { fetchCostEstimate, fetchSellerVehicles, fetchSimpleResearchById, FinalEstimate, SellerVehicle } from '../lib/api';
@@ -327,14 +328,7 @@ export default function CostCalculator() {
                 </div>
               )}
 
-              {status === 'loading' && (
-                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                  <LoaderIcon className="h-8 w-8 animate-spin text-[#2563EB]" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('results.loading')}
-                  </p>
-                </div>
-              )}
+              {status === 'loading' && <LoadingMessages />}
 
               {status === 'error' && (
                 <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
@@ -390,14 +384,7 @@ export default function CostCalculator() {
                 </div>
               )}
 
-              {status === 'loading' && (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-                  <LoaderIcon className="h-8 w-8 animate-spin text-[#2563EB]" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('problems.loading')}
-                  </p>
-                </div>
-              )}
+              {status === 'loading' && <LoadingMessages className="flex-1" />}
 
               {status === 'error' && (
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">

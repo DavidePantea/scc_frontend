@@ -6,6 +6,7 @@ import CalculatorHeader from './CalculatorHeader';
 import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
 import AdvancedOptionsFields from './AdvancedOptionsFields';
+import LoadingMessages from './LoadingMessages';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import {
@@ -522,6 +523,12 @@ export default function CompareCalculator() {
                 {isSubmitting ? t('action.calculating') : t('compare.submit')}
               </button>
             </div>
+
+            {isSubmitting && (
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <LoadingMessages />
+              </div>
+            )}
           </form>
         )}
 
