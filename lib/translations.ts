@@ -128,7 +128,6 @@ export const translations = {
   'trust.predictable': { ro: 'Costuri predictibile lunare', en: 'Predictable monthly costs' },
   'trust.tech': { ro: 'Tehnologie și confort avansat', en: 'Advanced technology and comfort' },
 
-  'cta.testDrive': { ro: 'Programează un test drive', en: 'Schedule a test drive' },
   'cta.download': { ro: 'Descarcă rezultatul', en: 'Download the result' },
 
   'stepper.step1': { ro: 'Selectează vehiculele', en: 'Select the vehicles' },
