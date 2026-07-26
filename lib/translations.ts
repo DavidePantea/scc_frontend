@@ -52,6 +52,17 @@ export const translations = {
   'field.rural': { ro: 'Rural', en: 'Rural' },
   'field.urban': { ro: 'Urban', en: 'Urban' },
 
+  'field.advancedOptions': { ro: 'Opțiuni avansate (opțional)', en: 'Advanced options (optional)' },
+  'field.yearlyKm': { ro: 'Kilometraj anual estimat', en: 'Estimated yearly mileage' },
+  'field.yearlyKmPlaceholder': { ro: 'ex. 15000', en: 'e.g. 15000' },
+  'field.city': { ro: 'Localitate principală', en: 'Primary city' },
+  'field.cityPlaceholder': { ro: 'ex. București', en: 'e.g. Bucharest' },
+
+  'disclaimer.estimateOnly': {
+    ro: 'Aceste rezultate sunt estimări orientative generate de AI și nu constituie consultanță financiară. Costurile reale pot varia.',
+    en: 'These results are AI-generated, indicative estimates and do not constitute financial advice. Actual costs may vary.',
+  },
+
   'fuel.petrol': { ro: 'Benzină', en: 'Petrol' },
   'fuel.diesel': { ro: 'Diesel', en: 'Diesel' },
   'fuel.hybrid': { ro: 'Hibrid', en: 'Hybrid' },

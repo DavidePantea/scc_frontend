@@ -7,6 +7,13 @@ export interface EstimateRequest {
   km: number;
   fuel: string;
   urban_percentage: number;
+  // Optional, advanced-section inputs: the city the car will mainly be
+  // driven in (affects fuel/insurance/tax figures, and is part of the
+  // backend's cache identity - the same car researched for two different
+  // cities is treated as two different vehicles) and an expected annual
+  // mileage (overrides the backend's default ~15,000 km/year assumption).
+  city?: string;
+  yearly_km?: number;
   // Set by the compare flow, which saves both sides as one comparison via
   // saveComparisonResearch once both succeed, instead of each side also
   // landing in the single-vehicle history.
@@ -37,6 +44,13 @@ export interface EstimateVehicle {
   fuel: string;
   km: number;
   urban_percentage: number;
+  // Optional per-search context: the city the car is mainly driven in
+  // (null/absent if not specified - for a listing-sourced estimate this is
+  // the listing's own location field) and an expected annual mileage
+  // (null/absent for listing-sourced estimates, which have no field of
+  // their own for this).
+  city?: string | null;
+  yearly_km?: number | null;
   // Present only when this estimate was researched from a seller's listing
   // (via seller_vehicle_id) - a snapshot of price/status at research time,
   // not a live reference.
@@ -144,6 +158,8 @@ export interface SimpleResearchListItem {
   fuel: string;
   km: number;
   urban_percentage: number;
+  city?: string | null;
+  yearly_km?: number | null;
   // Flattened from the saved result's vehicle field, so it's present when
   // this research was run against one of the seller's own listings.
   listing?: ListingSnapshot;
@@ -238,8 +254,12 @@ export async function fetchComparisonResearchById(id: string, accessToken: strin
 // Either a standard car's full spec, or a reference to one of the caller's
 // own listings - km/urban_percentage are still required alongside
 // seller_vehicle_id since they're per-search, not part of the listing's
-// fixed identity.
-export type ComparisonVehicleInput = EstimateVehicle | { seller_vehicle_id: string; km: number; urban_percentage: number };
+// fixed identity. city is carried on the listing branch too, purely so the
+// backend can store it on the comparison row - it isn't used to resolve the
+// listing (seller_vehicle_id already identifies it uniquely).
+export type ComparisonVehicleInput =
+  | EstimateVehicle
+  | { seller_vehicle_id: string; km: number; urban_percentage: number; city?: string | null };
 
 export interface ComparisonResearchInput {
   vehicleA: ComparisonVehicleInput;
