@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CalculatorHeader from './CalculatorHeader';
 import CostBreakdownBars from './CostBreakdownBars';
+import EstimateDisclaimer from './EstimateDisclaimer';
+import AdvancedOptionsFields from './AdvancedOptionsFields';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import {
@@ -40,6 +42,8 @@ interface FormState {
   km: number;
   fuel: FuelType;
   urbanPercentage: number;
+  city: string;
+  yearlyKm: number | null;
   source: VehicleSource;
   sellerVehicleId: string | null;
 }
@@ -55,6 +59,8 @@ function emptyForm(): FormState {
     km: 150_000,
     fuel: 'diesel',
     urbanPercentage: 50,
+    city: '',
+    yearlyKm: null,
     source: 'standard',
     sellerVehicleId: null,
   };
@@ -75,6 +81,7 @@ function toComparisonVehicleInput(form: FormState, output: FinalEstimate): Compa
       seller_vehicle_id: output.vehicle.listing.id,
       km: output.vehicle.km,
       urban_percentage: output.vehicle.urban_percentage,
+      city: output.vehicle.city,
     };
   }
   return {
@@ -84,6 +91,8 @@ function toComparisonVehicleInput(form: FormState, output: FinalEstimate): Compa
     fuel: output.vehicle.fuel,
     km: output.vehicle.km,
     urban_percentage: output.vehicle.urban_percentage,
+    city: output.vehicle.city,
+    yearly_km: output.vehicle.yearly_km,
   };
 }
 
@@ -196,6 +205,8 @@ export default function CompareCalculator() {
           km: data.vehicleA.km,
           fuel: data.vehicleA.fuel as FuelType,
           urbanPercentage: data.vehicleA.urban_percentage,
+          city: data.vehicleA.city ?? '',
+          yearlyKm: data.vehicleA.yearly_km ?? null,
           source: 'standard',
           sellerVehicleId: null,
         });
@@ -206,6 +217,8 @@ export default function CompareCalculator() {
           km: data.vehicleB.km,
           fuel: data.vehicleB.fuel as FuelType,
           urbanPercentage: data.vehicleB.urban_percentage,
+          city: data.vehicleB.city ?? '',
+          yearlyKm: data.vehicleB.yearly_km ?? null,
           source: 'standard',
           sellerVehicleId: null,
         });
@@ -267,6 +280,8 @@ export default function CompareCalculator() {
               km: form.km,
               fuel: form.fuel,
               urban_percentage: form.urbanPercentage,
+              ...(form.city.trim() && { city: form.city.trim() }),
+              ...(form.yearlyKm != null && { yearly_km: form.yearlyKm }),
               // Saved as a pair below once both sides succeed, instead of
               // each side also landing in the single-vehicle history.
               skip_history: true,
@@ -348,6 +363,8 @@ export default function CompareCalculator() {
       <CalculatorHeader />
 
       <div className="relative z-30 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-32">
+        <EstimateDisclaimer />
+
         <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <Stepper step={step} labels={[t('stepper.step1'), t('stepper.step2')]} />
         </div>
@@ -474,25 +491,14 @@ export default function CompareCalculator() {
                           ))}
                         </select>
                       </Field>
-                      <Field label={t('field.drivingEnv')}>
-                        <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={side.form.urbanPercentage}
-                            onChange={(e) => updateForm(side.key, { urbanPercentage: Number(e.target.value) })}
-                            className="w-full accent-[#2563EB]"
-                            aria-label={t('field.drivingEnv')}
-                          />
-                          <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
-                            <span>{t('field.rural')}</span>
-                            <span className="text-[#2563EB]">{side.form.urbanPercentage}% {t('field.urban')}</span>
-                            <span>{t('field.urban')}</span>
-                          </div>
-                        </div>
-                      </Field>
+                      <AdvancedOptionsFields
+                        city={side.form.city}
+                        yearlyKm={side.form.yearlyKm}
+                        urbanPercentage={side.form.urbanPercentage}
+                        onCityChange={(value) => updateForm(side.key, { city: value })}
+                        onYearlyKmChange={(value) => updateForm(side.key, { yearlyKm: value })}
+                        onUrbanPercentageChange={(value) => updateForm(side.key, { urbanPercentage: value })}
+                      />
                     </div>
                   )}
 

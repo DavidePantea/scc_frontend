@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import CalculatorHeader from './CalculatorHeader';
 import CalculatorFooter from './CalculatorFooter';
 import CostBreakdownBars from './CostBreakdownBars';
+import EstimateDisclaimer from './EstimateDisclaimer';
+import AdvancedOptionsFields from './AdvancedOptionsFields';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import { fetchCostEstimate, fetchSellerVehicles, fetchSimpleResearchById, FinalEstimate, SellerVehicle } from '../lib/api';
@@ -26,6 +28,8 @@ interface FormState {
   km: number;
   fuel: FuelType;
   urbanPercentage: number;
+  city: string;
+  yearlyKm: number | null;
   source: VehicleSource;
   sellerVehicleId: string | null;
 }
@@ -47,6 +51,8 @@ export default function CostCalculator() {
     km: 150_000,
     fuel: 'diesel',
     urbanPercentage: 50,
+    city: '',
+    yearlyKm: null,
     source: 'standard',
     sellerVehicleId: null,
   });
@@ -89,6 +95,8 @@ export default function CostCalculator() {
           km: data.vehicle.km,
           fuel: data.vehicle.fuel as FuelType,
           urbanPercentage: data.vehicle.urban_percentage,
+          city: data.vehicle.city ?? '',
+          yearlyKm: data.vehicle.yearly_km ?? null,
           source: 'standard',
           sellerVehicleId: null,
         });
@@ -139,6 +147,8 @@ export default function CostCalculator() {
               km: form.km,
               fuel: form.fuel,
               urban_percentage: form.urbanPercentage,
+              ...(form.city.trim() && { city: form.city.trim() }),
+              ...(form.yearlyKm != null && { yearly_km: form.yearlyKm }),
             },
         accessToken,
       );
@@ -158,6 +168,8 @@ export default function CostCalculator() {
       {/* 2. Main Grid Container - pulled UP over the banner with negative margin */}
       {/* The relative and z-30 ensure the cards float visually above the image */}
       <div className="relative z-30 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-32">
+
+        <EstimateDisclaimer />
 
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
 
@@ -275,25 +287,14 @@ export default function CostCalculator() {
                         ))}
                       </select>
                     </Field>
-                    <Field label={t('field.drivingEnv')}>
-                      <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={form.urbanPercentage}
-                          onChange={(e) => update('urbanPercentage', Number(e.target.value))}
-                          className="w-full accent-[#2563EB]"
-                          aria-label={t('field.drivingEnv')}
-                        />
-                        <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
-                          <span>{t('field.rural')}</span>
-                          <span className="text-[#2563EB]">{form.urbanPercentage}% {t('field.urban')}</span>
-                          <span>{t('field.urban')}</span>
-                        </div>
-                      </div>
-                    </Field>
+                    <AdvancedOptionsFields
+                      city={form.city}
+                      yearlyKm={form.yearlyKm}
+                      urbanPercentage={form.urbanPercentage}
+                      onCityChange={(value) => update('city', value)}
+                      onYearlyKmChange={(value) => update('yearlyKm', value)}
+                      onUrbanPercentageChange={(value) => update('urbanPercentage', value)}
+                    />
                   </div>
                 )}
 
