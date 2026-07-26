@@ -1,7 +1,9 @@
 'use client';
 
-import { CheckCircleIcon } from './icons';
+import { useState } from 'react';
+import { CheckCircleIcon, LoaderIcon } from './icons';
 import type { FinalEstimate } from '../lib/api';
+import { downloadEstimatePdf } from '../lib/pdf';
 import { useLanguage } from '../lib/language-context';
 
 interface CalculatorFooterProps {
@@ -16,10 +18,23 @@ function confidenceColor(score: number): string {
 
 export default function CalculatorFooter({ result }: CalculatorFooterProps) {
   const { t } = useLanguage();
+  const [downloading, setDownloading] = useState(false);
   const periodLabels: Record<string, string> = {
     annual: t('period.annual'),
     monthly: t('period.monthly'),
   };
+
+  async function handleDownload() {
+    if (!result || downloading) return;
+    setDownloading(true);
+    try {
+      await downloadEstimatePdf(result);
+    } catch (err) {
+      console.error('Failed to generate PDF', err);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
@@ -103,14 +118,11 @@ export default function CalculatorFooter({ result }: CalculatorFooterProps) {
         <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-64 lg:shrink-0 lg:flex-col">
           <button
             type="button"
-            className="w-full rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-[#EA580C] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30"
+            disabled={!result || downloading}
+            onClick={handleDownload}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-[#EA580C] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {t('cta.testDrive')}
-          </button>
-          <button
-            type="button"
-            className="w-full rounded-xl border-2 border-[#0F172A]/10 bg-transparent px-5 py-3 text-sm font-bold text-[#0F172A] hover:bg-[#F8FAFC] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0F172A]/10"
-          >
+            {downloading && <LoaderIcon className="h-4 w-4 animate-spin" />}
             {t('cta.download')}
           </button>
         </div>
