@@ -16,6 +16,7 @@ import {
 } from '../lib/api';
 import { FUEL_TYPES, FuelType, formatMoney } from '../lib/calculator-logic';
 import AuthFormField, { authInputClassName } from './AuthFormField';
+import MarketValueCard from './MarketValueCard';
 import { AlertIcon, LoaderIcon, PriceTagIcon } from './icons';
 
 type LoadStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -434,6 +435,10 @@ export default function SellerDashboard() {
               </p>
 
               {v.location && <p className="mt-1 text-xs text-[#0F172A]/50">{v.location}</p>}
+
+              <div className="mt-4">
+                <MarketValueCard request={{ seller_vehicle_id: v.id }} accessToken={accessToken} />
+              </div>
 
               <div className="mt-5 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
                 <Link

@@ -328,6 +328,15 @@ export const translations = {
     ro: 'Răspuns neașteptat de la serviciul de estimare.',
     en: 'Unexpected response from the estimate service.',
   },
+  'api.error.marketValueBadRequest': {
+    ro: 'Vehiculul specificat nu pare a fi o mașină reală, așa că nu am putut estima valoarea de piață.',
+    en: 'The specified vehicle does not appear to be a real car, so we could not estimate its market value.',
+  },
+
+  'marketValue.title': { ro: 'Valoare medie de piață', en: 'Average market value' },
+  'marketValue.cta': { ro: 'Vezi valoarea de piață', en: 'See market value' },
+  'marketValue.loading': { ro: 'Se caută...', en: 'Looking up...' },
+  'marketValue.in': { ro: 'în', en: 'in' },
 
   'howItWorks.heroTitle': { ro: 'Cum Funcționează', en: 'How It Works' },
   'howItWorks.heroSubtitle': {
