@@ -45,6 +45,39 @@ interface FormState {
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
+function marketValueRequestFromVehicle(vehicle: {
+  make: string;
+  model: string;
+  year: number;
+  fuel: string;
+  city?: string | null;
+}): MarketValueRequest {
+  return {
+    make: vehicle.make,
+    model: vehicle.model,
+    year: vehicle.year,
+    fuel: vehicle.fuel,
+    ...(vehicle.city && { city: vehicle.city }),
+  };
+}
+
+// Built straight from the form, not the finished estimate, so the
+// market-value lookup can start at the same time as the cost estimate
+// instead of waiting for it to finish first.
+function marketValueRequestFromForm(form: FormState): MarketValueRequest | null {
+  if (form.source === 'listing') {
+    return form.sellerVehicleId ? { seller_vehicle_id: form.sellerVehicleId } : null;
+  }
+  if (!form.make.trim() || !form.model.trim()) return null;
+  return marketValueRequestFromVehicle({
+    make: form.make.trim(),
+    model: form.model.trim(),
+    year: form.year,
+    fuel: form.fuel,
+    city: form.city.trim() || null,
+  });
+}
+
 export default function CostCalculator() {
   const { accessToken, user } = useAuth();
   const { t } = useLanguage();
@@ -68,6 +101,7 @@ export default function CostCalculator() {
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<FinalEstimate | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeMarketValueRequest, setActiveMarketValueRequest] = useState<MarketValueRequest | null>(null);
 
   useEffect(() => {
     if (!isSeller || !accessToken) return;
@@ -110,6 +144,7 @@ export default function CostCalculator() {
           sellerVehicleId: null,
         });
         setResult(data.result);
+        setActiveMarketValueRequest(marketValueRequestFromVehicle(data.vehicle));
         setStatus('success');
       })
       .catch((err) => {
@@ -130,19 +165,6 @@ export default function CostCalculator() {
     high: t('severity.high'),
   };
 
-  const marketValueRequest: MarketValueRequest | null =
-    status === 'success' && result
-      ? result.vehicle.listing
-        ? { seller_vehicle_id: result.vehicle.listing.id }
-        : {
-            make: result.vehicle.make,
-            model: result.vehicle.model,
-            year: result.vehicle.year,
-            fuel: result.vehicle.fuel,
-            ...(result.vehicle.city && { city: result.vehicle.city }),
-          }
-      : null;
-
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -157,6 +179,10 @@ export default function CostCalculator() {
     setStatus('loading');
     setErrorMessage(null);
     setResult(null);
+    // Set before the estimate call below, not after it resolves, so
+    // <MarketValueCard> mounts and starts fetching at the same time as the
+    // cost estimate instead of only once it's done.
+    setActiveMarketValueRequest(marketValueRequestFromForm(form));
 
     try {
       const output = await fetchCostEstimate(
@@ -379,16 +405,18 @@ export default function CostCalculator() {
                         </p>
                       </div>
                     )}
-
-                    <MarketValueCard
-                      key={marketValueKey(marketValueRequest)}
-                      request={marketValueRequest}
-                      accessToken={accessToken}
-                    />
                   </div>
                 </div>
               )}
             </section>
+
+            {/* Independent of the cost-estimate status above - starts fetching
+                as soon as the search is submitted, in parallel. */}
+            <MarketValueCard
+              key={marketValueKey(activeMarketValueRequest)}
+              request={activeMarketValueRequest}
+              accessToken={accessToken}
+            />
           </div>
 
           {/* Column 3: Common problems, scrollable */}

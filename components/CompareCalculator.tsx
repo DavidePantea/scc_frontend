@@ -99,18 +99,37 @@ function toComparisonVehicleInput(form: FormState, output: FinalEstimate): Compa
   };
 }
 
-function toMarketValueRequest(result: FinalEstimate | null): MarketValueRequest | null {
-  if (!result) return null;
-  if (result.vehicle.listing) {
-    return { seller_vehicle_id: result.vehicle.listing.id };
-  }
+function marketValueRequestFromVehicle(vehicle: {
+  make: string;
+  model: string;
+  year: number;
+  fuel: string;
+  city?: string | null;
+}): MarketValueRequest {
   return {
-    make: result.vehicle.make,
-    model: result.vehicle.model,
-    year: result.vehicle.year,
-    fuel: result.vehicle.fuel,
-    ...(result.vehicle.city && { city: result.vehicle.city }),
+    make: vehicle.make,
+    model: vehicle.model,
+    year: vehicle.year,
+    fuel: vehicle.fuel,
+    ...(vehicle.city && { city: vehicle.city }),
   };
+}
+
+// Built straight from the form, not the finished estimate, so the
+// market-value lookup can start at the same time as the cost estimate
+// instead of waiting for it to finish first.
+function marketValueRequestFromForm(form: FormState): MarketValueRequest | null {
+  if (form.source === 'listing') {
+    return form.sellerVehicleId ? { seller_vehicle_id: form.sellerVehicleId } : null;
+  }
+  if (!form.make.trim() || !form.model.trim()) return null;
+  return marketValueRequestFromVehicle({
+    make: form.make.trim(),
+    model: form.model.trim(),
+    year: form.year,
+    fuel: form.fuel,
+    city: form.city.trim() || null,
+  });
 }
 
 function Stepper({ step, labels }: { step: 1 | 2; labels: [string, string] }) {
@@ -185,6 +204,9 @@ export default function CompareCalculator() {
   const [sellingPoints, setSellingPoints] = useState<string[] | null>(null);
   const [sellerModeOn, setSellerModeOn] = useState(false);
 
+  const [marketValueRequestA, setMarketValueRequestA] = useState<MarketValueRequest | null>(null);
+  const [marketValueRequestB, setMarketValueRequestB] = useState<MarketValueRequest | null>(null);
+
   useEffect(() => {
     if (!isSeller || !accessToken) return;
     fetchSellerVehicles(accessToken)
@@ -241,6 +263,8 @@ export default function CompareCalculator() {
         });
         setResultA(data.resultA);
         setResultB(data.resultB);
+        setMarketValueRequestA(marketValueRequestFromVehicle(data.vehicleA));
+        setMarketValueRequestB(marketValueRequestFromVehicle(data.vehicleB));
         setSellerSide(data.sellerSide);
         setSellingPoints(data.sellingPoints);
         setStatusA('success');
@@ -320,6 +344,11 @@ export default function CompareCalculator() {
     setSellerSide(null);
     setSellingPoints(null);
     setSellerModeOn(false);
+    // Set before the estimate calls below, not after they resolve, so each
+    // side's <MarketValueCard> mounts and starts fetching at the same time
+    // as its cost estimate instead of only once it's done.
+    setMarketValueRequestA(marketValueRequestFromForm(formA));
+    setMarketValueRequestB(marketValueRequestFromForm(formB));
     const [outputA, outputB] = await Promise.all([
       runSide(formA, setStatusA, setResultA, setErrorA),
       runSide(formB, setStatusB, setResultB, setErrorB),
@@ -354,6 +383,7 @@ export default function CompareCalculator() {
     status: Status;
     result: FinalEstimate | null;
     error: string | null;
+    marketValueRequest: MarketValueRequest | null;
   }[] = [
     {
       key: 'a',
@@ -363,6 +393,7 @@ export default function CompareCalculator() {
       status: statusA,
       result: resultA,
       error: errorA,
+      marketValueRequest: marketValueRequestA,
     },
     {
       key: 'b',
@@ -372,6 +403,7 @@ export default function CompareCalculator() {
       status: statusB,
       result: resultB,
       error: errorB,
+      marketValueRequest: marketValueRequestB,
     },
   ];
 
@@ -637,15 +669,18 @@ export default function CompareCalculator() {
                             </div>
                           </div>
                         )}
-
-                        <MarketValueCard
-                          key={marketValueKey(toMarketValueRequest(side.result))}
-                          request={toMarketValueRequest(side.result)}
-                          accessToken={accessToken}
-                        />
                       </div>
                     )}
                   </section>
+
+                  {/* Independent of side.result above - starts fetching as
+                      soon as this side's search is submitted, in parallel
+                      with its cost estimate. */}
+                  <MarketValueCard
+                    key={marketValueKey(side.marketValueRequest)}
+                    request={side.marketValueRequest}
+                    accessToken={accessToken}
+                  />
 
                   {/* Issues box */}
                   <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">

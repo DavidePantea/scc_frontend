@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertIcon, LoaderIcon, PriceTagIcon } from './icons';
 import { fetchMarketValue, type MarketValue, type MarketValueRequest } from '../lib/api';
 import { useLanguage } from '../lib/language-context';
@@ -19,7 +19,7 @@ export default function MarketValueCard({ request, accessToken }: MarketValueCar
   const [error, setError] = useState<string | null>(null);
 
   async function handleFetch() {
-    if (!request || status === 'loading') return;
+    if (!request) return;
     setStatus('loading');
     setError(null);
     try {
@@ -32,6 +32,15 @@ export default function MarketValueCard({ request, accessToken }: MarketValueCar
     }
   }
 
+  // Fires as soon as this card mounts, in parallel with whatever else the
+  // caller kicked off (e.g. the cost estimate) - callers key this component
+  // on the vehicle identity (see marketValueKey), so a new vehicle/search
+  // remounts it and triggers a fresh fetch rather than reusing stale state.
+  useEffect(() => {
+    handleFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!request) return null;
 
   return (
@@ -41,15 +50,19 @@ export default function MarketValueCard({ request, accessToken }: MarketValueCar
           <PriceTagIcon className="h-4 w-4 text-[#2563EB]" />
           {t('marketValue.title')}
         </h3>
-        {status !== 'success' && (
+        {status === 'loading' && (
+          <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[#0F172A]/50">
+            <LoaderIcon className="h-3.5 w-3.5 animate-spin" />
+            {t('marketValue.loading')}
+          </span>
+        )}
+        {status === 'error' && (
           <button
             type="button"
             onClick={handleFetch}
-            disabled={status === 'loading'}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#2563EB]/10 px-3 py-1.5 text-xs font-bold text-[#2563EB] transition-colors hover:bg-[#2563EB]/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#2563EB]/10 px-3 py-1.5 text-xs font-bold text-[#2563EB] transition-colors hover:bg-[#2563EB]/20"
           >
-            {status === 'loading' && <LoaderIcon className="h-3.5 w-3.5 animate-spin" />}
-            {status === 'loading' ? t('marketValue.loading') : t('marketValue.cta')}
+            {t('marketValue.retry')}
           </button>
         )}
       </div>
