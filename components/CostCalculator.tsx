@@ -8,9 +8,17 @@ import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
 import AdvancedOptionsFields from './AdvancedOptionsFields';
 import LoadingMessages from './LoadingMessages';
+import MarketValueCard, { marketValueKey } from './MarketValueCard';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
-import { fetchCostEstimate, fetchSellerVehicles, fetchSimpleResearchById, FinalEstimate, SellerVehicle } from '../lib/api';
+import {
+  fetchCostEstimate,
+  fetchSellerVehicles,
+  fetchSimpleResearchById,
+  FinalEstimate,
+  MarketValueRequest,
+  SellerVehicle,
+} from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
 
@@ -121,6 +129,19 @@ export default function CostCalculator() {
     medium: t('severity.medium'),
     high: t('severity.high'),
   };
+
+  const marketValueRequest: MarketValueRequest | null =
+    status === 'success' && result
+      ? result.vehicle.listing
+        ? { seller_vehicle_id: result.vehicle.listing.id }
+        : {
+            make: result.vehicle.make,
+            model: result.vehicle.model,
+            year: result.vehicle.year,
+            fuel: result.vehicle.fuel,
+            ...(result.vehicle.city && { city: result.vehicle.city }),
+          }
+      : null;
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -358,6 +379,12 @@ export default function CostCalculator() {
                         </p>
                       </div>
                     )}
+
+                    <MarketValueCard
+                      key={marketValueKey(marketValueRequest)}
+                      request={marketValueRequest}
+                      accessToken={accessToken}
+                    />
                   </div>
                 </div>
               )}

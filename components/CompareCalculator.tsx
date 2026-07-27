@@ -7,6 +7,7 @@ import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
 import AdvancedOptionsFields from './AdvancedOptionsFields';
 import LoadingMessages from './LoadingMessages';
+import MarketValueCard, { marketValueKey } from './MarketValueCard';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import {
@@ -16,6 +17,7 @@ import {
   saveComparisonResearch,
   type ComparisonVehicleInput,
   type FinalEstimate,
+  type MarketValueRequest,
   type SellerSide,
   type SellerVehicle,
 } from '../lib/api';
@@ -94,6 +96,20 @@ function toComparisonVehicleInput(form: FormState, output: FinalEstimate): Compa
     urban_percentage: output.vehicle.urban_percentage,
     city: output.vehicle.city,
     yearly_km: output.vehicle.yearly_km,
+  };
+}
+
+function toMarketValueRequest(result: FinalEstimate | null): MarketValueRequest | null {
+  if (!result) return null;
+  if (result.vehicle.listing) {
+    return { seller_vehicle_id: result.vehicle.listing.id };
+  }
+  return {
+    make: result.vehicle.make,
+    model: result.vehicle.model,
+    year: result.vehicle.year,
+    fuel: result.vehicle.fuel,
+    ...(result.vehicle.city && { city: result.vehicle.city }),
   };
 }
 
@@ -621,6 +637,12 @@ export default function CompareCalculator() {
                             </div>
                           </div>
                         )}
+
+                        <MarketValueCard
+                          key={marketValueKey(toMarketValueRequest(side.result))}
+                          request={toMarketValueRequest(side.result)}
+                          accessToken={accessToken}
+                        />
                       </div>
                     )}
                   </section>

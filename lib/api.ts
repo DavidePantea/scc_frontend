@@ -149,6 +149,59 @@ export async function fetchCostEstimate(input: EstimateInput, accessToken?: stri
   return body;
 }
 
+// --- Average market value (by country, derived from city) --------------
+
+export interface MarketValue {
+  country: string;
+  currency: string;
+  average_price: number;
+  price_min: number | null;
+  price_max: number | null;
+  confidence: number;
+  summary: string;
+  from_cache?: boolean;
+}
+
+// Either a standard vehicle's identity fields, or a reference to one of the
+// caller's own listings - mirrors EstimateInput/SellerVehicleEstimateRequest,
+// but without km/urban_percentage, which don't affect a market's average
+// asking price.
+export type MarketValueRequest =
+  | { make: string; model: string; year: number; fuel: string; city?: string }
+  | { seller_vehicle_id: string };
+
+export async function fetchMarketValue(input: MarketValueRequest, accessToken?: string | null): Promise<MarketValue> {
+  if (!API_BASE_URL) {
+    throw new Error(translate('api.error.notConfigured'));
+  }
+
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/market-value`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(input),
+    });
+  } catch {
+    throw new Error(translate('api.error.networkError'));
+  }
+
+  if (!response.ok) {
+    throw new Error(response.status === 400 ? translate('api.error.marketValueBadRequest') : friendlyErrorMessage(response.status));
+  }
+
+  try {
+    return (await response.json()) as MarketValue;
+  } catch {
+    throw new Error(translate('api.error.unreadableResponse'));
+  }
+}
+
 export interface SimpleResearchListItem {
   id: string;
   type: 'simple';
