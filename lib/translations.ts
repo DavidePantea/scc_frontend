@@ -334,6 +334,10 @@ export const translations = {
   },
 
   'marketValue.title': { ro: 'Valoare medie de piață', en: 'Average market value' },
+  'marketValue.idle': {
+    ro: 'Completează detaliile mașinii tale pentru a vedea valoarea medie de piață.',
+    en: "Fill in your car's details to see its average market value.",
+  },
   'marketValue.loading': { ro: 'Se caută...', en: 'Looking up...' },
   'marketValue.retry': { ro: 'Încearcă din nou', en: 'Retry' },
   'marketValue.in': { ro: 'în', en: 'in' },
