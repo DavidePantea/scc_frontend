@@ -219,278 +219,277 @@ export default function CostCalculator() {
 
         <EstimateDisclaimer />
 
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8">
+        {/* 2x2 grid of equally-sized cards (inputs/analysis on the first
+            row, problems/market value on the second), followed by the
+            full-width result banner below. */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 
-          {/* Column 1: Inputs */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <form onSubmit={handleSubmit} className="flex lg:h-[40rem]">
-              <section className="flex w-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-                <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
-                  1. {t('form.step1Title')}
-                </h2>
-                <p className="mb-6 text-sm text-[#0F172A]/60">
-                  {t('form.step1Subtitle')}
-                </p>
+          {/* Card 1: Inputs */}
+          <form onSubmit={handleSubmit} className="flex lg:h-[34rem]">
+            <section className="flex w-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+              <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
+                1. {t('form.step1Title')}
+              </h2>
+              <p className="mb-6 text-sm text-[#0F172A]/60">
+                {t('form.step1Subtitle')}
+              </p>
 
-                {isSeller && (
-                  <div className="mb-5 grid grid-cols-2 gap-2">
-                    {(['standard', 'listing'] as const).map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => update('source', value)}
-                        className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
-                          form.source === value
-                            ? 'border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB]'
-                            : 'border-gray-200 bg-[#F8FAFC] text-[#0F172A]/60 hover:border-[#2563EB]/40'
-                        }`}
-                      >
-                        {t(value === 'standard' ? 'source.standard' : 'source.myInventory')}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              {isSeller && (
+                <div className="mb-5 grid grid-cols-2 gap-2">
+                  {(['standard', 'listing'] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => update('source', value)}
+                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                        form.source === value
+                          ? 'border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB]'
+                          : 'border-gray-200 bg-[#F8FAFC] text-[#0F172A]/60 hover:border-[#2563EB]/40'
+                      }`}
+                    >
+                      {t(value === 'standard' ? 'source.standard' : 'source.myInventory')}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-                {isSeller && form.source === 'listing' ? (
-                  <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
-                    {sellerVehicles.length === 0 ? (
-                      <p className="text-sm text-[#0F172A]/60">{t('source.noListings')}</p>
-                    ) : (
-                      <Field label={t('source.selectListing')}>
-                        <select
-                          required
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={form.sellerVehicleId ?? ''}
-                          onChange={(e) => update('sellerVehicleId', e.target.value || null)}
-                        >
-                          <option value="" disabled>
-                            {t('source.selectListing')}
-                          </option>
-                          {sellerVehicles.map((v) => (
-                            <option key={v.id} value={v.id}>
-                              {v.make} {v.model} ({v.year}) · {v.price.toLocaleString()} {v.currency}
-                            </option>
-                          ))}
-                        </select>
-                      </Field>
-                    )}
-                  </div>
-                ) : (
-                  <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label={t('field.make')}>
-                        <input
-                          required
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={form.make}
-                          onChange={(e) => update('make', e.target.value)}
-                          placeholder={t('field.makePlaceholder')}
-                        />
-                      </Field>
-                      <Field label={t('field.model')}>
-                        <input
-                          required
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={form.model}
-                          onChange={(e) => update('model', e.target.value)}
-                          placeholder={t('field.modelPlaceholder')}
-                        />
-                      </Field>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label={t('field.year')}>
-                        <input
-                          required
-                          type="number"
-                          inputMode="numeric"
-                          min={1990}
-                          max={new Date().getFullYear()}
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={form.year}
-                          onChange={(e) => updateNumber('year', e.target.value, form.year)}
-                        />
-                      </Field>
-                      <Field label={t('field.km')}>
-                        <input
-                          required
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
-                          step={1000}
-                          className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                          value={form.km}
-                          onChange={(e) => updateNumber('km', e.target.value, form.km)}
-                        />
-                      </Field>
-                    </div>
-                    <Field label={t('field.fuel')}>
+              {isSeller && form.source === 'listing' ? (
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+                  {sellerVehicles.length === 0 ? (
+                    <p className="text-sm text-[#0F172A]/60">{t('source.noListings')}</p>
+                  ) : (
+                    <Field label={t('source.selectListing')}>
                       <select
                         required
                         className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.fuel}
-                        onChange={(e) => update('fuel', e.target.value as FuelType)}
+                        value={form.sellerVehicleId ?? ''}
+                        onChange={(e) => update('sellerVehicleId', e.target.value || null)}
                       >
-                        {FUEL_TYPES.map((value) => (
-                          <option key={value} value={value}>{t(`fuel.${value}`)}</option>
+                        <option value="" disabled>
+                          {t('source.selectListing')}
+                        </option>
+                        {sellerVehicles.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.make} {v.model} ({v.year}) · {v.price.toLocaleString()} {v.currency}
+                          </option>
                         ))}
                       </select>
                     </Field>
-                    <AdvancedOptionsFields
-                      city={form.city}
-                      yearlyKm={form.yearlyKm}
-                      urbanPercentage={form.urbanPercentage}
-                      onCityChange={(value) => update('city', value)}
-                      onYearlyKmChange={(value) => update('yearlyKm', value)}
-                      onUrbanPercentageChange={(value) => update('urbanPercentage', value)}
-                    />
+                  )}
+                </div>
+              ) : (
+                <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label={t('field.make')}>
+                      <input
+                        required
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.make}
+                        onChange={(e) => update('make', e.target.value)}
+                        placeholder={t('field.makePlaceholder')}
+                      />
+                    </Field>
+                    <Field label={t('field.model')}>
+                      <input
+                        required
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.model}
+                        onChange={(e) => update('model', e.target.value)}
+                        placeholder={t('field.modelPlaceholder')}
+                      />
+                    </Field>
                   </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {status === 'loading' && <LoaderIcon className="h-4 w-4 animate-spin" />}
-                  {status === 'loading' ? t('action.calculating') : t('action.calculate')}
-                </button>
-              </section>
-            </form>
-          </div>
-
-          {/* Column 2: Cost breakdown */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[40rem]">
-              <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-                <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
-                2. {t('results.title')}
-              </h2>
-
-              {status === 'idle' && (
-                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                  <ScaleIcon className="h-8 w-8 text-[#0F172A]/20" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('results.idle')}
-                  </p>
-                </div>
-              )}
-
-              {status === 'loading' && <LoadingMessages />}
-
-              {status === 'error' && (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
-                  <AlertIcon className="h-8 w-8 text-red-500" />
-                  <p className="max-w-xs text-sm font-semibold text-red-700">
-                    {errorMessage}
-                  </p>
-                </div>
-              )}
-
-              {status === 'success' && result && (
-                <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-                  <div className="space-y-6">
-                    <CostBreakdownBars
-                      costBreakdown={result.cost_breakdown}
-                      total={result.total_estimated_cost}
-                      period={result.cost_period}
-                    />
-
-                    {result.summary && (
-                      <div className="pt-5 border-t border-gray-100">
-                        <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
-                          {t('results.details')}
-                        </h3>
-                        <p className="text-sm leading-relaxed text-[#0F172A]/70">
-                          {result.summary}
-                        </p>
-                      </div>
-                    )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label={t('field.year')}>
+                      <input
+                        required
+                        type="number"
+                        inputMode="numeric"
+                        min={1990}
+                        max={new Date().getFullYear()}
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.year}
+                        onChange={(e) => updateNumber('year', e.target.value, form.year)}
+                      />
+                    </Field>
+                    <Field label={t('field.km')}>
+                      <input
+                        required
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1000}
+                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                        value={form.km}
+                        onChange={(e) => updateNumber('km', e.target.value, form.km)}
+                      />
+                    </Field>
                   </div>
-                </div>
-              )}
-            </section>
-
-            {/* Independent of the cost-estimate status above - starts fetching
-                as soon as the search is submitted, in parallel. */}
-            <MarketValueCard
-              key={marketValueKey(activeMarketValueRequest)}
-              request={activeMarketValueRequest}
-              accessToken={accessToken}
-            />
-          </div>
-
-          {/* Column 3: Common problems, scrollable */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[40rem]">
-              <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-                <AlertIcon className="h-5 w-5 text-[#F97316]" />
-                {t('problems.title')}
-              </h2>
-              {status === 'success' && result?.engine.motor_type && (
-                <p className="mb-5 text-sm text-[#0F172A]/50">{result.engine.motor_type}</p>
-              )}
-
-              {status === 'idle' && (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-                  <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('problems.idle')}
-                  </p>
-                </div>
-              )}
-
-              {status === 'loading' && <LoadingMessages className="flex-1" />}
-
-              {status === 'error' && (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-                  <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('problems.error')}
-                  </p>
-                </div>
-              )}
-
-              {status === 'success' && result && (
-                result.engine.common_problems.length > 0 ? (
-                  <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-                    <ul className="space-y-3">
-                      {result.engine.common_problems.map((problem, idx) => (
-                        <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2">
-                              <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
-                              <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
-                            </div>
-                            <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
-                              {severityLabels[problem.severity] ?? problem.severity}
-                            </span>
-                          </div>
-                          {problem.description && (
-                            <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
-                          )}
-                          {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
-                            <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
-                              {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
-                            </p>
-                          )}
-                        </li>
+                  <Field label={t('field.fuel')}>
+                    <select
+                      required
+                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                      value={form.fuel}
+                      onChange={(e) => update('fuel', e.target.value as FuelType)}
+                    >
+                      {FUEL_TYPES.map((value) => (
+                        <option key={value} value={value}>{t(`fuel.${value}`)}</option>
                       ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-                    <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
-                    <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                      {t('problems.none')}
-                    </p>
-                  </div>
-                )
+                    </select>
+                  </Field>
+                  <AdvancedOptionsFields
+                    city={form.city}
+                    yearlyKm={form.yearlyKm}
+                    urbanPercentage={form.urbanPercentage}
+                    onCityChange={(value) => update('city', value)}
+                    onYearlyKmChange={(value) => update('yearlyKm', value)}
+                    onUrbanPercentageChange={(value) => update('urbanPercentage', value)}
+                  />
+                </div>
               )}
+
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {status === 'loading' && <LoaderIcon className="h-4 w-4 animate-spin" />}
+                {status === 'loading' ? t('action.calculating') : t('action.calculate')}
+              </button>
             </section>
-          </div>
+          </form>
+
+          {/* Card 2: Cost breakdown */}
+          <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[34rem]">
+            <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
+              <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
+              2. {t('results.title')}
+            </h2>
+
+            {status === 'idle' && (
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <ScaleIcon className="h-8 w-8 text-[#0F172A]/20" />
+                <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                  {t('results.idle')}
+                </p>
+              </div>
+            )}
+
+            {status === 'loading' && <LoadingMessages />}
+
+            {status === 'error' && (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
+                <AlertIcon className="h-8 w-8 text-red-500" />
+                <p className="max-w-xs text-sm font-semibold text-red-700">
+                  {errorMessage}
+                </p>
+              </div>
+            )}
+
+            {status === 'success' && result && (
+              <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                <div className="space-y-6">
+                  <CostBreakdownBars
+                    costBreakdown={result.cost_breakdown}
+                    total={result.total_estimated_cost}
+                    period={result.cost_period}
+                  />
+
+                  {result.summary && (
+                    <div className="pt-5 border-t border-gray-100">
+                      <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
+                        {t('results.details')}
+                      </h3>
+                      <p className="text-sm leading-relaxed text-[#0F172A]/70">
+                        {result.summary}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Card 3: Common problems, scrollable */}
+          <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[34rem]">
+            <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
+              <AlertIcon className="h-5 w-5 text-[#F97316]" />
+              {t('problems.title')}
+            </h2>
+            {status === 'success' && result?.engine.motor_type && (
+              <p className="mb-5 text-sm text-[#0F172A]/50">{result.engine.motor_type}</p>
+            )}
+
+            {status === 'idle' && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
+                <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                  {t('problems.idle')}
+                </p>
+              </div>
+            )}
+
+            {status === 'loading' && <LoadingMessages className="flex-1" />}
+
+            {status === 'error' && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
+                <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                  {t('problems.error')}
+                </p>
+              </div>
+            )}
+
+            {status === 'success' && result && (
+              result.engine.common_problems.length > 0 ? (
+                <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                  <ul className="space-y-3">
+                    {result.engine.common_problems.map((problem, idx) => (
+                      <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2">
+                            <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                            <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
+                          </div>
+                          <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
+                            {severityLabels[problem.severity] ?? problem.severity}
+                          </span>
+                        </div>
+                        {problem.description && (
+                          <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
+                        )}
+                        {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
+                          <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
+                            {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
+                  <AlertIcon className="h-8 w-8 text-[#0F172A]/20" />
+                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
+                    {t('problems.none')}
+                  </p>
+                </div>
+              )
+            )}
+          </section>
+
+          {/* Card 4: Average market value - independent of the cost-estimate
+              status above, starts fetching as soon as the search is
+              submitted, in parallel. */}
+          <MarketValueCard
+            key={marketValueKey(activeMarketValueRequest)}
+            request={activeMarketValueRequest}
+            accessToken={accessToken}
+            variant="card"
+          />
 
           {/* Full-width result banner, always at the base */}
-          <div className="lg:col-span-12">
+          <div className="lg:col-span-2">
             <CalculatorFooter result={result} />
           </div>
 
