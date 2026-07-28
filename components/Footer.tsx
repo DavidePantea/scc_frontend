@@ -28,7 +28,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm font-medium text-white/70">
               <li>
-                <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">{t('footer.about')}</a>
+                <a href="/about" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">{t('footer.about')}</a>
               </li>
               <li>
                 <a href="#" className="rounded-sm hover:text-[#F97316] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316]/40">{t('footer.terms')}</a>
@@ -54,7 +54,7 @@ export default function Footer() {
               </li>
               <li>
                 <span className="block text-xs text-white/50 uppercase tracking-wider mb-0.5">{t('footer.email')}</span>
-                <a href="mailto:contact@smartcarcompare.com" className="hover:text-white transition-colors">contact@smartcarcompare.com</a>
+                <a href="mailto:davide.pantea22@gmail.com" className="hover:text-white transition-colors">davide.pantea22@gmail.com</a>
               </li>
               <li>
                 <span className="block text-xs text-white/50 uppercase tracking-wider mb-0.5">{t('footer.address')}</span>
