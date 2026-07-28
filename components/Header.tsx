@@ -12,7 +12,8 @@ const NAV_LINKS = [
   { href: '/compare', key: 'nav.compare' },
   { href: '/how-it-works', key: 'nav.howItWorks' },
   { href: '/advantages', key: 'nav.advantages' },
-  { href: '#', key: 'nav.contact' },
+  { href: '/about', key: 'nav.about' },
+  { href: '/contact', key: 'nav.contact' },
 ] as const;
 
 export default function Header() {

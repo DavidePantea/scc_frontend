@@ -133,6 +133,15 @@ export function XIcon({ className }: IconProps) {
   );
 }
 
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m4 6 8 7 8-7" />
+    </svg>
+  );
+}
+
 export function ChevronDownIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className}>

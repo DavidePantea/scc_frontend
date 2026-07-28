@@ -4,6 +4,7 @@ export const translations = {
   'nav.compare': { ro: 'Compară', en: 'Compare' },
   'nav.howItWorks': { ro: 'Cum Funcționează', en: 'How It Works' },
   'nav.advantages': { ro: 'Avantaje', en: 'Advantages' },
+  'nav.about': { ro: 'Despre Noi', en: 'About Us' },
   'nav.contact': { ro: 'Contact', en: 'Contact' },
   'nav.sellerDashboard': { ro: 'Panou vânzător', en: 'Seller dashboard' },
   'nav.myAccount': { ro: 'Contul meu', en: 'My account' },
@@ -416,6 +417,49 @@ export const translations = {
     en: 'See in seconds whether your current car really is worth the costs.',
   },
   'advantages.ctaButton': { ro: 'Calculează estimarea', en: 'Calculate estimate' },
+
+  'about.heroTitle': { ro: 'Despre Noi', en: 'About Us' },
+  'about.heroSubtitle': {
+    ro: 'Ajutăm oamenii care caută o mașină la mâna a doua să nu plătească mai mult decât își permit.',
+    en: 'Helping people looking for a used car avoid paying more than they can afford.',
+  },
+  'about.mission.title': { ro: 'Misiunea noastră', en: 'Our mission' },
+  'about.mission.desc': {
+    ro: 'Prea mulți cumpărători aleg o mașină uitându-se doar la prețul de listare, iar apoi descoperă costuri ascunse de combustibil, întreținere, reparații și asigurare care le depășesc bugetul. SmartCarCompare a fost creat pentru a schimba asta: îți arătăm costul real, total, al unei mașini înainte să cumperi, ca decizia ta să se potrivească cu bugetul tău, nu invers.',
+    en: 'Too many buyers pick a car by looking only at the listing price, then discover hidden fuel, maintenance, repair, and insurance costs that push them over budget. SmartCarCompare exists to change that: we show you the real, total cost of a car before you buy, so your decision fits your budget — not the other way around.',
+  },
+  'about.value1.title': { ro: 'Prețuri corecte, fără surprize', en: 'Fair prices, no surprises' },
+  'about.value1.desc': {
+    ro: 'Te ajutăm să vezi dincolo de prețul de vânzare, ca să nu ajungi să plătești pentru o mașină mai mult decât îți permite bugetul tău.',
+    en: 'We help you look past the sale price, so you never end up paying more for a car than your budget allows.',
+  },
+  'about.value2.title': { ro: 'Transparență completă', en: 'Full transparency' },
+  'about.value2.desc': {
+    ro: 'Fiecare estimare arată clar din ce se compune costul total, ca să iei decizii informate, nu presupuneri.',
+    en: 'Every estimate breaks down exactly what makes up the total cost, so you decide based on facts, not guesswork.',
+  },
+  'about.value3.title': { ro: 'Construit pe încredere', en: 'Built on trust' },
+  'about.value3.desc': {
+    ro: 'Estimările noastre sunt verificate, iar scopul nostru este să te ajutăm pe tine, nu să vindem o mașină anume.',
+    en: 'Our estimates are verified, and our goal is to help you, not to sell you a particular car.',
+  },
+  'about.ctaTitle': { ro: 'Găsește mașina potrivită bugetului tău', en: 'Find the car that fits your budget' },
+  'about.ctaDesc': {
+    ro: 'Calculează în câteva secunde costul real al unei mașini, înainte să iei o decizie.',
+    en: 'Calculate the real cost of a car in seconds, before you make a decision.',
+  },
+  'about.ctaButton': { ro: 'Calculează estimarea', en: 'Calculate estimate' },
+
+  'contact.heroTitle': { ro: 'Contactează-ne', en: 'Contact Us' },
+  'contact.heroSubtitle': {
+    ro: 'Ai o întrebare, un feedback sau o sugestie? Ne-ar plăcea să auzim de la tine.',
+    en: 'Have a question, feedback, or a suggestion? We would love to hear from you.',
+  },
+  'contact.email.title': { ro: 'Email', en: 'Email' },
+  'contact.email.desc': {
+    ro: 'Cel mai simplu mod de a ne contacta este prin email — de obicei răspundem în câteva zile lucrătoare.',
+    en: 'The easiest way to reach us is by email — we typically reply within a few business days.',
+  },
 } as const satisfies Record<string, Record<Language, string>>;
 
 export type TranslationKey = keyof typeof translations;
