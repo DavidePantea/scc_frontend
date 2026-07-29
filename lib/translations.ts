@@ -71,10 +71,6 @@ export const translations = {
   'action.calculating': { ro: 'Se calculează...', en: 'Calculating...' },
 
   'results.title': { ro: 'Analiza Estimării', en: 'Estimate Analysis' },
-  'results.idle': {
-    ro: 'Completează detaliile mașinii tale și apasă „Calculează estimarea” pentru a vedea analiza completă.',
-    en: 'Fill in your car’s details and press "Calculate estimate" to see the full analysis.',
-  },
   'results.loading': {
     ro: 'Se generează estimarea ta. Poate dura câteva secunde.',
     en: 'Generating your estimate. This may take a few seconds.',

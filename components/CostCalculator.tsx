@@ -358,112 +358,109 @@ export default function CostCalculator() {
             </section>
           </form>
 
-          {/* Step 2: everything else, grouped in one box with each piece
-              as its own inner card. */}
-          <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-            <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-              <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
-              2. {t('results.title')}
-            </h2>
+          {/* Steps 2 & 3 only exist once a search has been submitted -
+              nothing to group or summarize before that. */}
+          {status !== 'idle' && (
+            <>
+              {/* Step 2: everything else, grouped in one box with each
+                  piece as its own inner card. */}
+              <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
+                <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
+                  <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
+                  2. {t('results.title')}
+                </h2>
 
-            <div className="space-y-6">
-              {status === 'idle' && (
-                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                  <ScaleIcon className="h-8 w-8 text-[#0F172A]/20" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('results.idle')}
-                  </p>
-                </div>
-              )}
+                <div className="space-y-6">
+                  {status === 'loading' && <LoadingMessages />}
 
-              {status === 'loading' && <LoadingMessages />}
+                  {status === 'error' && (
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
+                      <AlertIcon className="h-8 w-8 text-red-500" />
+                      <p className="max-w-xs text-sm font-semibold text-red-700">
+                        {errorMessage}
+                      </p>
+                    </div>
+                  )}
 
-              {status === 'error' && (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
-                  <AlertIcon className="h-8 w-8 text-red-500" />
-                  <p className="max-w-xs text-sm font-semibold text-red-700">
-                    {errorMessage}
-                  </p>
-                </div>
-              )}
+                  {status === 'success' && result && (
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      {/* Inner card: cost breakdown */}
+                      <div className="rounded-xl border border-gray-200 p-5 sm:p-6">
+                        <CostBreakdownBars
+                          costBreakdown={result.cost_breakdown}
+                          total={result.total_estimated_cost}
+                          period={result.cost_period}
+                        />
 
-              {status === 'success' && result && (
-                <>
-                  {/* Inner card: cost breakdown */}
-                  <div className="rounded-xl border border-gray-200 p-5 sm:p-6">
-                    <CostBreakdownBars
-                      costBreakdown={result.cost_breakdown}
-                      total={result.total_estimated_cost}
-                      period={result.cost_period}
-                    />
-
-                    {result.summary && (
-                      <div className="mt-5 pt-5 border-t border-gray-100">
-                        <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
-                          {t('results.details')}
-                        </h3>
-                        <p className="text-sm leading-relaxed text-[#0F172A]/70">
-                          {result.summary}
-                        </p>
+                        {result.summary && (
+                          <div className="mt-5 pt-5 border-t border-gray-100">
+                            <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
+                              {t('results.details')}
+                            </h3>
+                            <p className="text-sm leading-relaxed text-[#0F172A]/70">
+                              {result.summary}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Inner card: common problems */}
-                  <div className="rounded-xl border border-gray-200 p-5 sm:p-6">
-                    <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
-                      <AlertIcon className="h-4 w-4 text-[#F97316]" />
-                      {t('problems.title')}
-                    </h3>
-                    {result.engine.motor_type && (
-                      <p className="mb-4 text-xs text-[#0F172A]/50">{result.engine.motor_type}</p>
-                    )}
+                      {/* Inner card: common problems */}
+                      <div className="rounded-xl border border-gray-200 p-5 sm:p-6">
+                        <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
+                          <AlertIcon className="h-4 w-4 text-[#F97316]" />
+                          {t('problems.title')}
+                        </h3>
+                        {result.engine.motor_type && (
+                          <p className="mb-4 text-xs text-[#0F172A]/50">{result.engine.motor_type}</p>
+                        )}
 
-                    {result.engine.common_problems.length > 0 ? (
-                      <ul className="space-y-3">
-                        {result.engine.common_problems.map((problem, idx) => (
-                          <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-start gap-2">
-                                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
-                                <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
-                              </div>
-                              <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
-                                {severityLabels[problem.severity] ?? problem.severity}
-                              </span>
-                            </div>
-                            {problem.description && (
-                              <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
-                            )}
-                            {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
-                              <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
-                                {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
-                              </p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm font-medium text-[#0F172A]/60">{t('problems.none')}</p>
-                    )}
-                  </div>
-                </>
-              )}
+                        {result.engine.common_problems.length > 0 ? (
+                          <ul className="space-y-3">
+                            {result.engine.common_problems.map((problem, idx) => (
+                              <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-start gap-2">
+                                    <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                                    <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
+                                  </div>
+                                  <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
+                                    {severityLabels[problem.severity] ?? problem.severity}
+                                  </span>
+                                </div>
+                                {problem.description && (
+                                  <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
+                                )}
+                                {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
+                                  <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
+                                    {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
+                                  </p>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm font-medium text-[#0F172A]/60">{t('problems.none')}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-              {/* Inner card: average market value - independent of the
-                  cost-estimate status above, starts fetching as soon as
-                  the search is submitted, in parallel. Renders nothing
-                  until a request exists. */}
-              <MarketValueCard
-                key={marketValueKey(activeMarketValueRequest)}
-                request={activeMarketValueRequest}
-                accessToken={accessToken}
-                variant="compact"
-              />
-            </div>
-          </section>
+                  {/* Inner card: average market value - independent of the
+                      cost-estimate status above, starts fetching as soon as
+                      the search is submitted, in parallel. Renders nothing
+                      until a request exists. */}
+                  <MarketValueCard
+                    key={marketValueKey(activeMarketValueRequest)}
+                    request={activeMarketValueRequest}
+                    accessToken={accessToken}
+                    variant="compact"
+                  />
+                </div>
+              </section>
 
-          <CalculatorFooter result={result} />
+              <CalculatorFooter result={result} />
+            </>
+          )}
 
         </div>
       </div>
