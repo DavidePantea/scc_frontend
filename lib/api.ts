@@ -202,6 +202,63 @@ export async function fetchMarketValue(input: MarketValueRequest, accessToken?: 
   }
 }
 
+// --- Price evolution (last-5-years line chart, by country/currency) ----
+
+export interface PricePoint {
+  year: number;
+  average_price: number;
+}
+
+export interface PriceEvolution {
+  country: string;
+  currency: string;
+  start_year: number;
+  end_year: number;
+  points: PricePoint[];
+  confidence: number;
+  summary: string;
+  from_cache?: boolean;
+}
+
+// Same shape as MarketValueRequest - a standard vehicle's identity fields, or
+// a reference to one of the caller's own listings.
+export type PriceEvolutionRequest = MarketValueRequest;
+
+export async function fetchPriceEvolution(
+  input: PriceEvolutionRequest,
+  accessToken?: string | null,
+): Promise<PriceEvolution> {
+  if (!API_BASE_URL) {
+    throw new Error(translate('api.error.notConfigured'));
+  }
+
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/price-evolution`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(input),
+    });
+  } catch {
+    throw new Error(translate('api.error.networkError'));
+  }
+
+  if (!response.ok) {
+    throw new Error(response.status === 400 ? translate('api.error.priceEvolutionBadRequest') : friendlyErrorMessage(response.status));
+  }
+
+  try {
+    return (await response.json()) as PriceEvolution;
+  } catch {
+    throw new Error(translate('api.error.unreadableResponse'));
+  }
+}
+
 export interface SimpleResearchListItem {
   id: string;
   type: 'simple';
