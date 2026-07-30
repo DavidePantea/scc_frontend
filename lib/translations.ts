@@ -331,6 +331,10 @@ export const translations = {
     ro: 'Vehiculul specificat nu pare a fi o mașină reală, așa că nu am putut estima valoarea de piață.',
     en: 'The specified vehicle does not appear to be a real car, so we could not estimate its market value.',
   },
+  'api.error.priceEvolutionBadRequest': {
+    ro: 'Vehiculul specificat nu pare a fi o mașină reală, așa că nu am putut cerceta evoluția prețului.',
+    en: 'The specified vehicle does not appear to be a real car, so we could not research its price evolution.',
+  },
 
   'marketValue.title': { ro: 'Valoare medie de piață', en: 'Average market value' },
   'marketValue.idle': {
@@ -340,6 +344,25 @@ export const translations = {
   'marketValue.loading': { ro: 'Se caută...', en: 'Looking up...' },
   'marketValue.retry': { ro: 'Încearcă din nou', en: 'Retry' },
   'marketValue.in': { ro: 'în', en: 'in' },
+
+  'priceEvolution.title': { ro: 'Evoluția prețului', en: 'Price evolution' },
+  'priceEvolution.subtitle': {
+    ro: 'Prețul mediu de piață în ultimii 5 ani.',
+    en: 'Average market price over the last 5 years.',
+  },
+  'priceEvolution.idle': {
+    ro: 'Completează detaliile mașinii tale pentru a vedea evoluția prețului.',
+    en: "Fill in your car's details to see its price evolution.",
+  },
+  'priceEvolution.loading': { ro: 'Se cercetează evoluția prețului...', en: 'Researching price evolution...' },
+  'priceEvolution.showTable': { ro: 'Vezi ca tabel', en: 'View as table' },
+  'priceEvolution.showChart': { ro: 'Vezi ca grafic', en: 'View as chart' },
+  'priceEvolution.year': { ro: 'An', en: 'Year' },
+  'priceEvolution.pricesIn': { ro: 'Prețuri în', en: 'Prices in' },
+  'priceEvolution.tooNew': {
+    ro: 'Acest vehicul este prea nou pentru un istoric de prețuri pe mai mulți ani — se arată doar anul curent.',
+    en: 'This vehicle is too new for a multi-year price history — only the current year is shown.',
+  },
 
   'howItWorks.heroTitle': { ro: 'Cum Funcționează', en: 'How It Works' },
   'howItWorks.heroSubtitle': {

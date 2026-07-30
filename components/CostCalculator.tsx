@@ -9,6 +9,7 @@ import EstimateDisclaimer from './EstimateDisclaimer';
 import AdvancedOptionsFields from './AdvancedOptionsFields';
 import LoadingMessages from './LoadingMessages';
 import MarketValueCard, { marketValueKey } from './MarketValueCard';
+import PriceEvolutionChart from './PriceEvolutionChart';
 import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import {
@@ -462,6 +463,21 @@ export default function CostCalculator() {
               />
             </div>
           </section>
+
+          {/* Inner card: price evolution over the last 5 years - independent
+              of the cost-estimate status above, same trigger as
+              <MarketValueCard>. */}
+          <PriceEvolutionChart
+            series={[
+              {
+                key: 'main',
+                label: `${result?.vehicle.make ?? form.make} ${result?.vehicle.model ?? form.model}`,
+                color: '#2563EB',
+                request: activeMarketValueRequest,
+              },
+            ]}
+            accessToken={accessToken}
+          />
 
           <CalculatorFooter result={result} />
 

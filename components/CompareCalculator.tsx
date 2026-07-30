@@ -8,6 +8,7 @@ import EstimateDisclaimer from './EstimateDisclaimer';
 import AdvancedOptionsFields from './AdvancedOptionsFields';
 import LoadingMessages from './LoadingMessages';
 import MarketValueCard, { marketValueKey } from './MarketValueCard';
+import PriceEvolutionChart from './PriceEvolutionChart';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ScaleIcon } from './icons';
 import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
 import {
@@ -29,6 +30,11 @@ const SEVERITY_STYLES: Record<string, string> = {
   medium: 'bg-[#F97316]/10 text-[#F97316]',
   high: 'bg-red-100 text-red-700',
 };
+
+// Fixed per-side colors for the price-evolution comparison chart - never
+// swapped or cycled, so side A is always blue and side B always orange
+// regardless of which vehicles are being compared.
+const SIDE_COLORS: Record<SideKey, string> = { a: '#2563EB', b: '#F97316' };
 
 function confidenceColor(score: number): string {
   if (score >= 8) return '#2563EB';
@@ -630,6 +636,18 @@ export default function CompareCalculator() {
                 )}
               </div>
             )}
+
+            <div className="mb-8">
+              <PriceEvolutionChart
+                series={sides.map((side) => ({
+                  key: side.key,
+                  label: `${side.result?.vehicle.make ?? side.form.make} ${side.result?.vehicle.model ?? side.form.model}`,
+                  color: SIDE_COLORS[side.key],
+                  request: side.marketValueRequest,
+                }))}
+                accessToken={accessToken}
+              />
+            </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {sides.map((side) => (
