@@ -14,7 +14,11 @@ const PRODUCT_LINKS: { href: string; key: TranslationKey }[] = [
   { href: '/about', key: 'footer.about' },
 ];
 
-const LEGAL_LINKS: TranslationKey[] = ['footer.terms', 'footer.privacy', 'footer.cookiePolicy'];
+const LEGAL_LINKS: { href: string; key: TranslationKey }[] = [
+  { href: '/terms', key: 'footer.terms' },
+  { href: '/privacy', key: 'footer.privacy' },
+  { href: '/cookies', key: 'footer.cookiePolicy' },
+];
 
 const linkClass =
   'rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-on-dark/50';
@@ -49,14 +53,6 @@ export default function Footer() {
             <h2 className="eyebrow mb-4 text-white/45">{t('footer.contact')}</h2>
             <dl className="space-y-3 text-sm">
               <div>
-                <dt className="text-xs text-white/45">{t('footer.phone')}</dt>
-                <dd>
-                  <a href="tel:+40700000000" className={`tabular text-white/80 ${linkClass}`}>
-                    +40 700 000 000
-                  </a>
-                </dd>
-              </div>
-              <div>
                 <dt className="text-xs text-white/45">{t('footer.email')}</dt>
                 <dd>
                   <a href="mailto:davide.pantea22@gmail.com" className={`break-all text-white/80 ${linkClass}`}>
@@ -74,11 +70,11 @@ export default function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 md:flex-row">
           <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/50">
-            {LEGAL_LINKS.map((key) => (
-              <li key={key}>
-                <a href="#" className={linkClass}>
-                  {t(key)}
-                </a>
+            {LEGAL_LINKS.map((link) => (
+              <li key={link.key}>
+                <Link href={link.href} className={linkClass}>
+                  {t(link.key)}
+                </Link>
               </li>
             ))}
           </ul>

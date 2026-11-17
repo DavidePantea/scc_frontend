@@ -135,6 +135,37 @@ often.
 After deploying, submit `https://<your-domain>/sitemap.xml` in Google Search
 Console.
 
+## AdSense
+
+- The AdSense script loads only on routes with substantial content, listed
+  in `lib/adsense.ts` (currently the home page and `/articole/*`).
+  Login/signup, account, seller, compare, contact, legal and 404 pages stay
+  ad-free, as AdSense forbids ads on screens without publisher content.
+- Site ownership is verified by the `google-adsense-account` meta tag (set in
+  `app/layout.tsx`, shows no ads) and `public/ads.txt`.
+- `/privacy`, `/terms` and `/cookies` (content in `lib/legal.ts`) carry the
+  disclosures AdSense requires about Google's advertising cookies. EEA
+  consent is handled by Google's consent message, configured in AdSense →
+  Privacy & messaging, not in this codebase.
+- Pages that read query parameters must not call `useSearchParams` at page
+  level: it makes Next.js drop the whole page from the server HTML, so
+  crawlers see an empty screen. Use `useUrlParams` from
+  `components/UrlParams.tsx` instead.
+
+## Security headers and dependency overrides
+
+`next.config.ts` sends security headers on every route: anti-framing
+(`frame-ancestors 'none'` + `X-Frame-Options: DENY`), `nosniff`, a strict
+referrer policy, a permissions policy, HSTS, and no `X-Powered-By`. The CSP is
+deliberately limited to directives that can't break the page; a full
+`script-src` allowlist would need nonces and every AdSense domain.
+
+`package.json` → `pnpm.overrides` pins patched versions of a few transitive
+dependencies (DOMPurify under jsPDF, plus PostCSS/nanoid/source-map-js and
+some lint tooling), each kept within its current major version. Run
+`pnpm audit` after upgrading Next.js or jsPDF and drop any override the new
+release makes unnecessary.
+
 ## Authentication
 
 Login/signup/session logic lives entirely in a separate `auth-service`

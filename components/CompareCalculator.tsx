@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import CommonProblems from './CommonProblems';
 import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
@@ -12,6 +11,7 @@ import PageHero from './PageHero';
 import PriceEvolutionChart from './PriceEvolutionChart';
 import SectionCard from './SectionCard';
 import VehicleFormFields from './VehicleFormFields';
+import { useUrlParams } from './UrlParams';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, ReceiptIcon, ScaleIcon } from './icons';
 import {
   fetchComparisonResearchById,
@@ -36,6 +36,8 @@ import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
+
+const URL_PARAM_KEYS = ['researchId', 'useListingA'] as const;
 type SideKey = 'a' | 'b';
 
 // Fixed per-side colors - never swapped or cycled, so side A is always blue
@@ -118,9 +120,7 @@ function Stepper({ step, labels }: { step: 1 | 2; labels: [string, string] }) {
 export default function CompareCalculator() {
   const { accessToken, user } = useAuth();
   const { t } = useLanguage();
-  const searchParams = useSearchParams();
-  const researchId = searchParams.get('researchId');
-  const useListingA = searchParams.get('useListingA');
+  const [{ researchId, useListingA }, urlParamsReader] = useUrlParams(URL_PARAM_KEYS);
   const [step, setStep] = useState<1 | 2>(1);
 
   const isSeller = user?.accountType === 'seller';
@@ -298,6 +298,7 @@ export default function CompareCalculator() {
 
   return (
     <div className="pb-20 text-ink">
+      {urlParamsReader}
       <PageHero
         eyebrow={t('nav.compare')}
         title={t('compare.heroTitle')}
