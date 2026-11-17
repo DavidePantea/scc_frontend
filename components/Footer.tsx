@@ -9,6 +9,7 @@ const PRODUCT_LINKS: { href: string; key: TranslationKey }[] = [
   { href: '/', key: 'nav.calculator' },
   { href: '/compare', key: 'nav.compare' },
   { href: '/how-it-works', key: 'nav.howItWorks' },
+  { href: '/articole', key: 'nav.articles' },
   { href: '/advantages', key: 'nav.advantages' },
   { href: '/about', key: 'footer.about' },
 ];

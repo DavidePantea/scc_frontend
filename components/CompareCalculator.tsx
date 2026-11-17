@@ -302,11 +302,11 @@ export default function CompareCalculator() {
         eyebrow={t('nav.compare')}
         title={t('compare.heroTitle')}
         subtitle={t('compare.heroSubtitle')}
-        variant="overlap"
+        variant="tuck"
       />
 
-      <div className="relative z-10 mx-auto -mt-24 max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="card-raised mb-6 p-4 sm:px-6">
+      <div className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="card-raised mb-8 p-4 sm:px-6">
           <Stepper step={step} labels={[t('stepper.step1'), t('stepper.step2')]} />
         </div>
 

@@ -8,19 +8,25 @@ interface PageHeroProps {
   /** 'start': centered on mobile, left-aligned from lg up. 'center': always centered. */
   align?: 'center' | 'start';
   /**
-   * 'overlap' adds extra bottom padding so content placed after it (via a
-   * negative top margin) can float up over the banner.
+   * 'overlap' adds extra bottom padding so a card placed after it (via
+   * -mt-24) floats up over the banner. 'tuck' leaves room for only a slim
+   * element (e.g. a stepper, via -mt-10) to straddle the edge, so the
+   * content below it sits fully on the page background.
    */
-  variant?: 'standard' | 'overlap';
+  variant?: 'standard' | 'overlap' | 'tuck';
 }
 
 /** Dark page-title band shared by every secondary page. */
 export default function PageHero({ title, subtitle, eyebrow, align = 'center', variant = 'standard' }: PageHeroProps) {
-  const isOverlap = variant === 'overlap';
+  const padding = {
+    standard: 'py-14 sm:py-20',
+    overlap: 'pb-36 pt-14 lg:pb-40 lg:pt-20',
+    tuck: 'pb-20 pt-14 lg:pb-24 lg:pt-20',
+  }[variant];
   const start = align === 'start';
 
   return (
-    <div className={`hero-surface relative w-full ${isOverlap ? 'pb-36 pt-14 lg:pb-40 lg:pt-20' : 'py-14 sm:py-20'}`}>
+    <div className={`hero-surface relative w-full ${padding}`}>
       <div
         className={`relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 ${start ? 'text-center lg:text-left' : 'text-center'}`}
       >

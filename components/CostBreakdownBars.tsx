@@ -55,17 +55,22 @@ function formatAmount(amount: number): string {
   return Math.round(amount).toLocaleString();
 }
 
-// Segment colours for the stacked bar; each row repeats its swatch next to
-// a text label and amount, so colour is never the only signal.
-const SEGMENTS = [
-  { color: '#1D4ED8', fg: '#FFFFFF' },
-  { color: '#3B82F6', fg: '#FFFFFF' },
-  { color: '#93C5FD', fg: '#0F172A' },
-  { color: '#F97316', fg: '#0F172A' },
-  { color: '#FDBA74', fg: '#0F172A' },
-  { color: '#64748B', fg: '#FFFFFF' },
-  { color: '#CBD5E1', fg: '#0F172A' },
-];
+// Fixed category order and colour, so the breakdown always reads the same
+// way - and two vehicles on the compare page line up row for row. Each row
+// repeats its colour next to a text label and amount, so colour is never the
+// only signal.
+const CATEGORY_STYLE: Record<string, { order: number; color: string; fg: string }> = {
+  fuel: { order: 0, color: '#1D4ED8', fg: '#FFFFFF' },
+  maintenance: { order: 1, color: '#3B82F6', fg: '#FFFFFF' },
+  repair: { order: 2, color: '#93C5FD', fg: '#0F172A' },
+  repairs: { order: 2, color: '#93C5FD', fg: '#0F172A' },
+  insurance: { order: 3, color: '#F97316', fg: '#0F172A' },
+  tax: { order: 4, color: '#FDBA74', fg: '#0F172A' },
+  taxes: { order: 4, color: '#FDBA74', fg: '#0F172A' },
+  depreciation: { order: 5, color: '#64748B', fg: '#FFFFFF' },
+};
+// Unknown keys go last, in the order the API sent them.
+const FALLBACK_STYLE = { order: 99, color: '#CBD5E1', fg: '#0F172A' };
 
 interface CostBreakdownBarsProps {
   costBreakdown: CostItem[];
@@ -81,11 +86,13 @@ export default function CostBreakdownBars({ costBreakdown, total, period }: Cost
   };
   const totalAmount = total.amount > 0 ? total.amount : 0;
   const periodLabel = periodLabels[period] ?? (period ? `/ ${period}` : '');
-  const items = [...costBreakdown]
-    .sort((a, b) => b.amount - a.amount)
-    .map((item, idx) => ({
+  const items = costBreakdown
+    .map((item, idx) => ({ item, idx, style: CATEGORY_STYLE[item.key] ?? FALLBACK_STYLE }))
+    .sort((a, b) => a.style.order - b.style.order || a.idx - b.idx)
+    .map(({ item, style }) => ({
       item,
-      ...SEGMENTS[idx % SEGMENTS.length],
+      color: style.color,
+      fg: style.fg,
       pct: totalAmount > 0 ? Math.max(0, Math.min(100, (item.amount / totalAmount) * 100)) : 0,
     }));
 

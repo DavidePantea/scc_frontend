@@ -46,8 +46,21 @@ cost me per year?* The design is built around that number.
 is 2.8:1 and fails WCAG AA; ink on orange is about 7:1.
 
 Chart series: side A `#2563EB`, side B `#EA580C`. B is the darker orange so
-the line keeps 3:1 contrast against white. The cost-breakdown stack uses a
-blue → orange → slate ramp, and every segment is repeated in a labelled row.
+the line keeps 3:1 contrast against white.
+
+Cost breakdown: every category has a **fixed position and colour**, so two
+vehicles line up row for row on the compare page. The rows are never
+re-sorted by amount:
+
+| Order | Category | Colour |
+|---|---|---|
+| 1 | Fuel | `#1D4ED8` |
+| 2 | Maintenance | `#3B82F6` |
+| 3 | Unforeseen repairs | `#93C5FD` |
+| 4 | Insurance | `#F97316` |
+| 5 | Taxes | `#FDBA74` |
+| 6 | Depreciation | `#64748B` |
+| — | Unknown keys (last, API order) | `#CBD5E1` |
 
 ## 3. Typography
 
@@ -72,7 +85,10 @@ body 14–16px → caption 12px. Never go below 12px.
 - Grid gaps: 24px between cards, 12–16px inside forms.
 - The **overlap pattern**: secondary pages use a dark `PageHero` with
   `variant="overlap"`; the first card is pulled up with `-mt-24` so it
-  straddles the hero edge.
+  straddles the hero edge. Only light cards may straddle: a dark card
+  (such as the comparison verdict) must never cross the dark hero band.
+  On `/compare`, `variant="tuck"` + `-mt-10` lets only the slim stepper cross
+  the edge, and everything below it sits on the page background.
 - Breakpoints checked: 375, 768, 1024, 1440.
 
 ## 5. Components
@@ -99,11 +115,19 @@ placeholder boxes. After a search:
 2. Cost breakdown | Common problems
 3. Market value | Price evolution (5-year chart)
 
-**Compare (`/compare`)** — hero → stepper card → A/B forms (colour-coded
+**Compare (`/compare`)** — hero (`tuck`) → stepper straddling its edge → A/B forms (colour-coded
 badges, no more duplicate "1." headings) → verdict banner → shared price
 chart → per-side columns.
 
 **Content pages** — `PageHero` with eyebrow → card grid → `CtaBanner`.
+
+**Articles (`/articole`)** — `PageHero` → card grid with the newest article
+featured (spanning two columns) → `CtaBanner`. An article page has a dark
+header (breadcrumb, category, H1, description, author/date/read time), a
+body column limited to about 70 characters per line (17px / 32px line
+height), a sticky sidebar from `lg` up (table of contents + calculator
+card), an inline dark CTA block, a disclaimer and three related articles.
+Whole cards are clickable through a stretched link on the title.
 
 **Auth & account** — the form card overlaps the hero; errors appear inline
 with `role="alert"`.
@@ -120,6 +144,7 @@ with `role="alert"`.
 - [x] Text contrast ≥ 4.5:1 (orange buttons use ink text; blue on dark uses `brand-on-dark`)
 - [x] Visible focus rings on every interactive element
 - [x] Touch targets ≥ 44px (nav menu button, buttons, mobile menu rows)
+- [x] Desktop nav only from `xl` (1280px); below that the menu button is used, so nothing overflows
 - [x] Active nav item marked with `aria-current="page"`
 - [x] Decorative SVG icons `aria-hidden`
 - [x] Colour never the only signal (severity, chart series, confidence)

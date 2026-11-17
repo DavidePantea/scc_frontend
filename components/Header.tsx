@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/', key: 'nav.calculator' },
   { href: '/compare', key: 'nav.compare' },
   { href: '/how-it-works', key: 'nav.howItWorks' },
+  { href: '/articole', key: 'nav.articles' },
   { href: '/advantages', key: 'nav.advantages' },
   { href: '/contact', key: 'nav.contact' },
 ] as const;
@@ -50,8 +51,9 @@ export default function Header() {
           <Logo />
         </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
-          {NAV_LINKS.map((link) => {
+        <nav aria-label="Main" className="hidden items-center gap-1 xl:flex">
+          {/* The logo already links to the calculator, so the desktop bar skips it. */}
+          {NAV_LINKS.filter((link) => link.href !== '/').map((link) => {
             const active = isActive(link.href);
             return (
               <Link
@@ -68,13 +70,13 @@ export default function Header() {
           })}
         </nav>
 
-        <div className="hidden min-w-0 items-center gap-3 lg:flex">
+        <div className="hidden min-w-0 items-center gap-3 xl:flex">
           <LanguageToggle />
           <AccountNav />
         </div>
 
-        {/* Below `lg` the full nav + account controls don't fit, so they move into the menu. */}
-        <div className="flex shrink-0 items-center gap-2 lg:hidden">
+        {/* Below `xl` the full nav + account controls don't fit, so they move into the menu. */}
+        <div className="flex shrink-0 items-center gap-2 xl:hidden">
           <LanguageToggle />
           <button
             type="button"
@@ -92,7 +94,7 @@ export default function Header() {
       {isMenuOpen && (
         <div
           id="mobile-menu"
-          className="animate-in max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line bg-surface lg:hidden"
+          className="animate-in max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line bg-surface xl:hidden"
         >
           <nav aria-label="Main" className="flex flex-col gap-0.5 px-4 py-3">
             {NAV_LINKS.map((link) => {
