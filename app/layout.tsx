@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,6 +7,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/lib/auth-context";
 import { LanguageProvider } from "@/lib/language-context";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import AdSenseScript from "@/components/AdSenseScript";
+import { ADSENSE_CLIENT_ID } from "@/lib/adsense";
 
 // latin-ext carries the Romanian diacritics (ă, â, î, ș, ț).
 const bricolage = Bricolage_Grotesque({
@@ -35,6 +36,10 @@ export const metadata: Metadata = {
   verification: {
     google: "P37NoUlD80XBLksPar0dvjFxLT2ZX-vaSwAv8onl3_A",
   },
+  // AdSense site-ownership verification (shows no ads by itself).
+  other: {
+    "google-adsense-account": ADSENSE_CLIENT_ID,
+  },
 };
 
 export default function RootLayout({
@@ -60,12 +65,7 @@ export default function RootLayout({
           </AuthProvider>
         </LanguageProvider>
         <Analytics />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5647173051825914"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        <AdSenseScript />
       </body>
     </html>
   );

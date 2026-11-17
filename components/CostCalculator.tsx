@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import CommonProblems from './CommonProblems';
 import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
@@ -11,6 +10,7 @@ import PriceEvolutionChart from './PriceEvolutionChart';
 import ResultSummary from './ResultSummary';
 import SectionCard from './SectionCard';
 import VehicleFormFields from './VehicleFormFields';
+import { useUrlParams } from './UrlParams';
 import { AlertIcon, CheckCircleIcon, LoaderIcon, PriceTagIcon, ReceiptIcon, WrenchIcon } from './icons';
 import {
   fetchCostEstimate,
@@ -34,6 +34,8 @@ import type { TranslationKey } from '../lib/translations';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
+const URL_PARAM_KEYS = ['researchId', 'useListing'] as const;
+
 const HERO_POINTS: TranslationKey[] = ['hero.point1', 'hero.point2', 'hero.point3'];
 
 const PREVIEW: { icon: React.ComponentType<{ className?: string }>; title: TranslationKey; desc: TranslationKey }[] = [
@@ -49,9 +51,7 @@ function prefersReducedMotion() {
 export default function CostCalculator() {
   const { accessToken, user } = useAuth();
   const { t } = useLanguage();
-  const searchParams = useSearchParams();
-  const researchId = searchParams.get('researchId');
-  const useListing = searchParams.get('useListing');
+  const [{ researchId, useListing }, urlParamsReader] = useUrlParams(URL_PARAM_KEYS);
   const isSeller = user?.accountType === 'seller';
   const resultsRef = useRef<HTMLDivElement>(null);
   const [sellerVehicles, setSellerVehicles] = useState<SellerVehicle[]>([]);
@@ -136,6 +136,7 @@ export default function CostCalculator() {
 
   return (
     <div className="pb-20 text-ink">
+      {urlParamsReader}
       {/* Hero: pitch on the left, the form itself on the right, so the
           primary action is above the fold. */}
       <section className="hero-surface">
