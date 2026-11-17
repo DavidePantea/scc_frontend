@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import SectionCard from './SectionCard';
 import { AlertIcon, LoaderIcon, TrendIcon } from './icons';
 import { fetchPriceEvolution, type PriceEvolution, type PriceEvolutionRequest } from '../lib/api';
 import { useLanguage } from '../lib/language-context';
@@ -26,10 +27,11 @@ function requestKey(request: PriceEvolutionRequest | null): string {
   return `${request.make}|${request.model}|${request.year}|${request.fuel}|${request.city ?? ''}`;
 }
 
-const VIEW_W = 640;
+// Default drawing width; the chart re-measures its container so SVG units
+// map 1:1 to CSS pixels and labels stay readable on phones.
+const DEFAULT_VIEW_W = 640;
 const VIEW_H = 260;
 const PAD = { top: 16, right: 16, bottom: 26, left: 60 };
-const CHART_W = VIEW_W - PAD.left - PAD.right;
 const CHART_H = VIEW_H - PAD.top - PAD.bottom;
 
 interface PriceEvolutionChartProps {
@@ -78,20 +80,9 @@ export default function PriceEvolutionChart({ series, accessToken }: PriceEvolut
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, retryNonce]);
 
-  if (activeSeries.length === 0) {
-    return (
-      <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-        <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-          <TrendIcon className="h-5 w-5 text-[#2563EB]" />
-          {t('priceEvolution.title')}
-        </h2>
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-          <TrendIcon className="h-8 w-8 text-[#0F172A]/20" />
-          <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">{t('priceEvolution.idle')}</p>
-        </div>
-      </section>
-    );
-  }
+  // Nothing to plot until a vehicle has been submitted; the page shows its
+  // own empty state instead of an empty chart card.
+  if (activeSeries.length === 0) return null;
 
   type ActiveEntry = {
     series: PriceEvolutionSeriesInput & { request: PriceEvolutionRequest };
@@ -107,39 +98,43 @@ export default function PriceEvolutionChart({ series, accessToken }: PriceEvolut
   const allErrored = !anyLoading && successes.length === 0;
 
   return (
-    <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <h2 className="font-heading flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-          <TrendIcon className="h-5 w-5 text-[#2563EB]" />
-          {t('priceEvolution.title')}
-        </h2>
-        {successes.length > 0 && (
+    <SectionCard
+      icon={TrendIcon}
+      title={t('priceEvolution.title')}
+      subtitle={t('priceEvolution.subtitle')}
+      action={
+        successes.length > 0 && (
           <button
             type="button"
             onClick={() => setShowTable((v) => !v)}
-            className="shrink-0 rounded-lg bg-[#2563EB]/10 px-3 py-1.5 text-xs font-bold text-[#2563EB] transition-colors hover:bg-[#2563EB]/20"
+            aria-pressed={showTable}
+            className="btn btn-secondary min-h-9 px-3 py-1.5 text-xs"
           >
             {showTable ? t('priceEvolution.showChart') : t('priceEvolution.showTable')}
           </button>
-        )}
-      </div>
-      <p className="mb-5 text-xs font-semibold text-[#0F172A]/50">{t('priceEvolution.subtitle')}</p>
-
+        )
+      }
+    >
       {anyLoading && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-          <LoaderIcon className="h-8 w-8 animate-spin text-[#0F172A]/20" />
-          <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">{t('priceEvolution.loading')}</p>
+        <div aria-live="polite">
+          <div className="h-56 w-full animate-pulse rounded-xl bg-line-soft/70" />
+          <p className="mt-3 flex items-center gap-2 text-sm text-muted">
+            <LoaderIcon className="h-4 w-4 animate-spin" />
+            {t('priceEvolution.loading')}
+          </p>
         </div>
       )}
 
       {!anyLoading && allErrored && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
-          <AlertIcon className="h-8 w-8 text-red-500" />
-          <p className="max-w-xs text-sm font-semibold text-red-700">{entries.find((e) => e.state?.error)?.state?.error}</p>
+        <div className="flex flex-col items-start gap-3 rounded-xl bg-danger-soft p-4">
+          <p className="flex items-start gap-2 text-sm font-medium text-danger">
+            <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+            {entries.find((e) => e.state?.error)?.state?.error}
+          </p>
           <button
             type="button"
             onClick={() => setRetryNonce((n) => n + 1)}
-            className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-200"
+            className="btn btn-secondary min-h-9 px-3 py-1.5 text-xs"
           >
             {t('marketValue.retry')}
           </button>
@@ -147,7 +142,7 @@ export default function PriceEvolutionChart({ series, accessToken }: PriceEvolut
       )}
 
       {!anyLoading && successes.length > 0 && <Chart successes={successes} showTable={showTable} />}
-    </section>
+    </SectionCard>
   );
 }
 
@@ -168,6 +163,20 @@ function Chart({
 }) {
   const { t } = useLanguage();
   const svgRef = useRef<SVGSVGElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [VIEW_W, setViewW] = useState(DEFAULT_VIEW_W);
+  const CHART_W = VIEW_W - PAD.left - PAD.right;
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => {
+      const width = Math.round(entry.contentRect.width);
+      if (width > 0) setViewW(Math.max(280, width));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [showTable]);
   const [hover, setHover] = useState<{ year: number; x: number } | null>(null);
 
   const chartSeries: ChartSeries[] = successes.map(({ series, state }) => ({
@@ -219,10 +228,10 @@ function Chart({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[420px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-[#0F172A]/50">
+            <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-muted">
               <th className="py-2 pr-4">{t('priceEvolution.year')}</th>
               {chartSeries.map((s) => (
-                <th key={s.key} className="py-2 pr-4 font-semibold normal-case tracking-normal text-[#0F172A]">
+                <th key={s.key} className="py-2 pr-4 font-semibold normal-case tracking-normal text-ink">
                   <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ backgroundColor: s.color }} />
                   {s.label}
                 </th>
@@ -231,12 +240,12 @@ function Chart({
           </thead>
           <tbody>
             {xYears.map((year) => (
-              <tr key={year} className="border-b border-gray-100">
-                <td className="py-2 pr-4 font-semibold text-[#0F172A]">{year}</td>
+              <tr key={year} className="border-b border-line-soft">
+                <td className="py-2 pr-4 font-semibold text-ink">{year}</td>
                 {chartSeries.map((s) => {
                   const point = s.points.find((p) => p.year === year);
                   return (
-                    <td key={s.key} className="py-2 pr-4 text-[#0F172A]/70">
+                    <td key={s.key} className="py-2 pr-4 text-muted">
                       {point ? `${Math.round(point.average_price).toLocaleString()} ${s.currency}` : '—'}
                     </td>
                   );
@@ -252,14 +261,14 @@ function Chart({
   return (
     <div>
       {tooShort && (
-        <p className="mb-3 rounded-lg bg-[#2563EB]/5 px-3 py-2 text-xs font-semibold text-[#2563EB]">
+        <p className="mb-3 rounded-lg bg-brand-soft px-3 py-2 text-xs font-semibold text-brand">
           {t('priceEvolution.tooNew')}
         </p>
       )}
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[#0F172A]/40">
+      <p className="mb-2 eyebrow text-muted">
         {t('priceEvolution.pricesIn')} {currency}
       </p>
-      <div className="relative">
+      <div className="relative" ref={wrapRef}>
         <svg
           ref={svgRef}
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -271,21 +280,21 @@ function Chart({
         >
           {yTickValues.map((value, i) => (
             <g key={i}>
-              <line x1={PAD.left} x2={VIEW_W - PAD.right} y1={yFor(value)} y2={yFor(value)} stroke="#E2E8F0" strokeWidth={1} />
-              <text x={PAD.left - 8} y={yFor(value)} textAnchor="end" dominantBaseline="middle" className="fill-[#0F172A]/40" fontSize={10}>
+              <line x1={PAD.left} x2={VIEW_W - PAD.right} y1={yFor(value)} y2={yFor(value)} stroke="#E3E7EE" strokeWidth={1} />
+              <text x={PAD.left - 8} y={yFor(value)} textAnchor="end" dominantBaseline="middle" className="fill-muted" fontSize={11}>
                 {Math.round(value).toLocaleString()}
               </text>
             </g>
           ))}
 
           {xYears.map((year) => (
-            <text key={year} x={xFor(year)} y={VIEW_H - PAD.bottom + 18} textAnchor="middle" className="fill-[#0F172A]/40" fontSize={10}>
+            <text key={year} x={xFor(year)} y={VIEW_H - PAD.bottom + 18} textAnchor="middle" className="fill-muted" fontSize={11}>
               {year}
             </text>
           ))}
 
           {hover && (
-            <line x1={hover.x} x2={hover.x} y1={PAD.top} y2={VIEW_H - PAD.bottom} stroke="#0F172A" strokeOpacity={0.15} strokeWidth={1} />
+            <line x1={hover.x} x2={hover.x} y1={PAD.top} y2={VIEW_H - PAD.bottom} stroke="#0F172A" strokeOpacity={0.2} strokeDasharray="3 3" strokeWidth={1} />
           )}
 
           {chartSeries.map((s) => {
@@ -294,9 +303,29 @@ function Chart({
               .join(' ');
             const last = s.points[s.points.length - 1];
             const labelAtEnd = last && xFor(last.year) + 6 <= VIEW_W - PAD.right - 4;
+            // When the label can't sit right of the last point, tuck it on
+            // the side away from the incoming line segment so it never
+            // covers the line: below a falling line, above a rising one.
+            const prev = s.points[s.points.length - 2];
+            const falling = !!prev && prev.average_price > last.average_price;
+            const labelDy = labelAtEnd ? 0 : falling ? 14 : -14;
             return (
               <g key={s.key}>
-                <path d={path} fill="none" stroke={s.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                {s.points.length >= 2 && (
+                  <>
+                    <defs>
+                      <linearGradient id={`area-${s.key}`} x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor={s.color} stopOpacity={chartSeries.length > 1 ? 0.1 : 0.18} />
+                        <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d={`${path} L ${xFor(last.year).toFixed(1)} ${VIEW_H - PAD.bottom} L ${xFor(s.points[0].year).toFixed(1)} ${VIEW_H - PAD.bottom} Z`}
+                      fill={`url(#area-${s.key})`}
+                    />
+                  </>
+                )}
+                <path d={path} fill="none" stroke={s.color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                 {s.points.map((p) => (
                   <circle
                     key={p.year}
@@ -311,12 +340,16 @@ function Chart({
                 {last && (
                   <text
                     x={labelAtEnd ? xFor(last.year) + 8 : xFor(last.year) - 8}
-                    y={yFor(last.average_price)}
+                    y={Math.min(VIEW_H - PAD.bottom - 4, Math.max(PAD.top + 4, yFor(last.average_price) + labelDy))}
                     textAnchor={labelAtEnd ? 'start' : 'end'}
                     dominantBaseline="middle"
-                    fontSize={10}
+                    fontSize={11}
                     fontWeight={700}
-                    className="fill-[#0F172A]"
+                    className="fill-ink"
+                    paintOrder="stroke"
+                    stroke="#fff"
+                    strokeWidth={3}
+                    strokeLinejoin="round"
                   >
                     {s.label}
                   </text>
@@ -328,15 +361,15 @@ function Chart({
 
         {hover && (
           <div
-            className="pointer-events-none absolute top-2 z-10 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-md"
+            className="pointer-events-none absolute top-2 z-10 rounded-xl border border-line bg-surface px-3 py-2 text-xs shadow-[var(--shadow-raised)]"
             style={{ left: `${(hover.x / VIEW_W) * 100}%`, transform: 'translateX(-50%)' }}
           >
-            <p className="mb-1 font-bold text-[#0F172A]">{hover.year}</p>
+            <p className="mb-1 font-bold text-ink">{hover.year}</p>
             {chartSeries.map((s) => {
               const point = s.points.find((p) => p.year === hover.year);
               if (!point) return null;
               return (
-                <p key={s.key} className="flex items-center gap-1.5 whitespace-nowrap text-[#0F172A]/70">
+                <p key={s.key} className="flex items-center gap-1.5 whitespace-nowrap text-muted">
                   <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
                   {Math.round(point.average_price).toLocaleString()} {s.currency}
                 </p>
@@ -347,9 +380,9 @@ function Chart({
       </div>
 
       {chartSeries.length >= 2 && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-gray-100 pt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-line-soft pt-4">
           {chartSeries.map((s) => (
-            <span key={s.key} className="flex items-center gap-1.5 text-xs font-semibold text-[#0F172A]/70">
+            <span key={s.key} className="flex items-center gap-1.5 text-xs font-semibold text-muted">
               <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
               {s.label}
             </span>

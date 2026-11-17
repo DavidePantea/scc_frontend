@@ -3,13 +3,15 @@
 import { AlertIcon } from './icons';
 import { useLanguage } from '../lib/language-context';
 
-export default function EstimateDisclaimer() {
+/** "AI estimate, not financial advice" note. 'dark' sits on the hero band. */
+export default function EstimateDisclaimer({ surface = 'light', className = '' }: { surface?: 'light' | 'dark'; className?: string }) {
   const { t } = useLanguage();
+  const dark = surface === 'dark';
 
   return (
-    <div className="mb-8 flex items-start gap-3 rounded-2xl border border-[#F97316] bg-[#FFF3E8] p-4 sm:p-5">
-      <AlertIcon className="mt-0.5 h-5 w-5 shrink-0 text-[#F97316]" />
-      <p className="text-sm leading-relaxed text-[#0F172A]">{t('disclaimer.estimateOnly')}</p>
-    </div>
+    <p className={`flex items-start gap-2 text-xs leading-relaxed ${dark ? 'text-white/55' : 'text-muted'} ${className}`}>
+      <AlertIcon className={`mt-px h-3.5 w-3.5 shrink-0 ${dark ? 'text-accent' : 'text-accent-ink'}`} />
+      {t('disclaimer.estimateOnly')}
+    </p>
   );
 }

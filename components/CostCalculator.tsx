@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import CalculatorHeader from './CalculatorHeader';
-import CalculatorFooter from './CalculatorFooter';
+import CommonProblems from './CommonProblems';
 import CostBreakdownBars from './CostBreakdownBars';
 import EstimateDisclaimer from './EstimateDisclaimer';
-import AdvancedOptionsFields from './AdvancedOptionsFields';
 import LoadingMessages from './LoadingMessages';
 import MarketValueCard, { marketValueKey } from './MarketValueCard';
 import PriceEvolutionChart from './PriceEvolutionChart';
-import { AlertIcon, LoaderIcon, ScaleIcon } from './icons';
-import { FuelType, FUEL_TYPES } from '../lib/calculator-logic';
+import ResultSummary from './ResultSummary';
+import SectionCard from './SectionCard';
+import VehicleFormFields from './VehicleFormFields';
+import { AlertIcon, CheckCircleIcon, LoaderIcon, PriceTagIcon, ReceiptIcon, WrenchIcon } from './icons';
 import {
   fetchCostEstimate,
   fetchSellerVehicles,
@@ -20,63 +20,30 @@ import {
   MarketValueRequest,
   SellerVehicle,
 } from '../lib/api';
+import {
+  emptyVehicleForm,
+  estimateInputFromForm,
+  marketValueRequestFromForm,
+  marketValueRequestFromVehicle,
+  vehicleFormFromSaved,
+  type VehicleFormState,
+} from '../lib/vehicle-form';
 import { useAuth } from '../lib/auth-context';
 import { useLanguage } from '../lib/language-context';
-
-const SEVERITY_STYLES: Record<string, string> = {
-  low: 'bg-[#2563EB]/10 text-[#2563EB]',
-  medium: 'bg-[#F97316]/10 text-[#F97316]',
-  high: 'bg-red-100 text-red-700',
-};
-
-type VehicleSource = 'standard' | 'listing';
-
-interface FormState {
-  make: string;
-  model: string;
-  year: number;
-  km: number;
-  fuel: FuelType;
-  urbanPercentage: number;
-  city: string;
-  yearlyKm: number | null;
-  source: VehicleSource;
-  sellerVehicleId: string | null;
-}
+import type { TranslationKey } from '../lib/translations';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
-function marketValueRequestFromVehicle(vehicle: {
-  make: string;
-  model: string;
-  year: number;
-  fuel: string;
-  city?: string | null;
-}): MarketValueRequest {
-  return {
-    make: vehicle.make,
-    model: vehicle.model,
-    year: vehicle.year,
-    fuel: vehicle.fuel,
-    ...(vehicle.city && { city: vehicle.city }),
-  };
-}
+const HERO_POINTS: TranslationKey[] = ['hero.point1', 'hero.point2', 'hero.point3'];
 
-// Built straight from the form, not the finished estimate, so the
-// market-value lookup can start at the same time as the cost estimate
-// instead of waiting for it to finish first.
-function marketValueRequestFromForm(form: FormState): MarketValueRequest | null {
-  if (form.source === 'listing') {
-    return form.sellerVehicleId ? { seller_vehicle_id: form.sellerVehicleId } : null;
-  }
-  if (!form.make.trim() || !form.model.trim()) return null;
-  return marketValueRequestFromVehicle({
-    make: form.make.trim(),
-    model: form.model.trim(),
-    year: form.year,
-    fuel: form.fuel,
-    city: form.city.trim() || null,
-  });
+const PREVIEW: { icon: React.ComponentType<{ className?: string }>; title: TranslationKey; desc: TranslationKey }[] = [
+  { icon: ReceiptIcon, title: 'results.preview1Title', desc: 'results.preview1Desc' },
+  { icon: WrenchIcon, title: 'results.preview2Title', desc: 'results.preview2Desc' },
+  { icon: PriceTagIcon, title: 'results.preview3Title', desc: 'results.preview3Desc' },
+];
+
+function prefersReducedMotion() {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 export default function CostCalculator() {
@@ -86,19 +53,9 @@ export default function CostCalculator() {
   const researchId = searchParams.get('researchId');
   const useListing = searchParams.get('useListing');
   const isSeller = user?.accountType === 'seller';
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [sellerVehicles, setSellerVehicles] = useState<SellerVehicle[]>([]);
-  const [form, setForm] = useState<FormState>({
-    make: '',
-    model: '',
-    year: 2016,
-    km: 150_000,
-    fuel: 'diesel',
-    urbanPercentage: 50,
-    city: '',
-    yearlyKm: null,
-    source: 'standard',
-    sellerVehicleId: null,
-  });
+  const [form, setForm] = useState<VehicleFormState>(emptyVehicleForm);
   const [status, setStatus] = useState<Status>('idle');
   const [result, setResult] = useState<FinalEstimate | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -132,18 +89,7 @@ export default function CostCalculator() {
     fetchSimpleResearchById(researchId, accessToken)
       .then((data) => {
         if (cancelled) return;
-        setForm({
-          make: data.vehicle.make,
-          model: data.vehicle.model,
-          year: data.vehicle.year,
-          km: data.vehicle.km,
-          fuel: data.vehicle.fuel as FuelType,
-          urbanPercentage: data.vehicle.urban_percentage,
-          city: data.vehicle.city ?? '',
-          yearlyKm: data.vehicle.yearly_km ?? null,
-          source: 'standard',
-          sellerVehicleId: null,
-        });
+        setForm(vehicleFormFromSaved(data.vehicle));
         setResult(data.result);
         setActiveMarketValueRequest(marketValueRequestFromVehicle(data.vehicle));
         setStatus('success');
@@ -160,19 +106,8 @@ export default function CostCalculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [researchId, accessToken]);
 
-  const severityLabels: Record<string, string> = {
-    low: t('severity.low'),
-    medium: t('severity.medium'),
-    high: t('severity.high'),
-  };
-
-  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function updateNumber<K extends 'year' | 'km'>(key: K, raw: string, fallback: number) {
-    const parsed = Number(raw);
-    update(key, (raw === '' || Number.isNaN(parsed) ? fallback : parsed) as FormState[K]);
+  function update(patch: Partial<VehicleFormState>) {
+    setForm((prev) => ({ ...prev, ...patch }));
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -184,23 +119,11 @@ export default function CostCalculator() {
     // <MarketValueCard> mounts and starts fetching at the same time as the
     // cost estimate instead of only once it's done.
     setActiveMarketValueRequest(marketValueRequestFromForm(form));
+    // On small screens the results start well below the form.
+    resultsRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
 
     try {
-      const output = await fetchCostEstimate(
-        form.source === 'listing' && form.sellerVehicleId
-          ? { seller_vehicle_id: form.sellerVehicleId }
-          : {
-              make: form.make.trim(),
-              model: form.model.trim(),
-              year: form.year,
-              km: form.km,
-              fuel: form.fuel,
-              urban_percentage: form.urbanPercentage,
-              ...(form.city.trim() && { city: form.city.trim() }),
-              ...(form.yearlyKm != null && { yearly_km: form.yearlyKm }),
-            },
-        accessToken,
-      );
+      const output = await fetchCostEstimate(estimateInputFromForm(form), accessToken);
       setResult(output);
       setStatus('success');
     } catch (err) {
@@ -209,291 +132,139 @@ export default function CostCalculator() {
     }
   }
 
+  const vehicleLabel = `${result?.vehicle.make ?? form.make} ${result?.vehicle.model ?? form.model}`.trim();
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] pb-20">
-      {/* 1. Header is placed outside any max-width wrappers so it goes edge-to-edge */}
-      <CalculatorHeader />
+    <div className="pb-20 text-ink">
+      {/* Hero: pitch on the left, the form itself on the right, so the
+          primary action is above the fold. */}
+      <section className="hero-surface">
+        <div className="mx-auto grid max-w-6xl items-start gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pt-14 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:pb-20 lg:pt-20">
+          <div className="text-center text-white lg:col-span-6 lg:pt-6 lg:text-left">
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+              {t('hero.eyebrow')}
+            </p>
+            <h1 className="mt-5 font-heading text-4xl font-bold leading-[1.04] tracking-tight sm:text-5xl lg:text-6xl">
+              <span className="block">{t('hero.titleLine1')}</span>
+              <span className="block text-brand-on-dark">{t('hero.titleLine2')}</span>
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg lg:mx-0">
+              {t('hero.subtitle')}
+            </p>
+            <ul className="mx-auto mt-8 hidden max-w-md space-y-3 text-left text-sm text-white/85 sm:block lg:mx-0">
+              {HERO_POINTS.map((key) => (
+                <li key={key} className="flex items-start gap-3">
+                  <CheckCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  {t(key)}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-      {/* 2. Main Grid Container - pulled UP over the banner with negative margin */}
-      {/* The relative and z-30 ensure the cards float visually above the image */}
-      <div className="relative z-30 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-24 lg:-mt-32">
+          <form onSubmit={handleSubmit} className="lg:col-span-6" aria-labelledby="vehicle-form-title">
+            <div className="card-raised p-5 shadow-[var(--shadow-float)] sm:p-7">
+              <div className="mb-5">
+                <h2 id="vehicle-form-title" className="font-heading text-xl font-semibold tracking-tight text-ink">
+                  {t('form.step1Title')}
+                </h2>
+                <p className="mt-1 text-sm text-muted">{t('form.step1Subtitle')}</p>
+              </div>
 
-        <EstimateDisclaimer />
+              <VehicleFormFields value={form} onChange={update} isSeller={isSeller} sellerVehicles={sellerVehicles} />
 
-        {/* Vehicle form on top, centered; everything else stacks below it
-            inside a single results box, each piece as its own inner card. */}
-        <div className="flex flex-col gap-8">
-
-          {/* Step 1: Inputs, standalone and centered */}
-          <form onSubmit={handleSubmit} className="mx-auto w-full max-w-2xl">
-            <section className="flex w-full flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-              <h2 className="font-heading mb-1 text-lg font-semibold text-[#0F172A]">
-                1. {t('form.step1Title')}
-              </h2>
-              <p className="mb-6 text-sm text-[#0F172A]/60">
-                {t('form.step1Subtitle')}
-              </p>
-
-              {isSeller && (
-                <div className="mb-5 grid grid-cols-2 gap-2">
-                  {(['standard', 'listing'] as const).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => update('source', value)}
-                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
-                        form.source === value
-                          ? 'border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB]'
-                          : 'border-gray-200 bg-[#F8FAFC] text-[#0F172A]/60 hover:border-[#2563EB]/40'
-                      }`}
-                    >
-                      {t(value === 'standard' ? 'source.standard' : 'source.myInventory')}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {isSeller && form.source === 'listing' ? (
-                <div className="space-y-5">
-                  {sellerVehicles.length === 0 ? (
-                    <p className="text-sm text-[#0F172A]/60">{t('source.noListings')}</p>
-                  ) : (
-                    <Field label={t('source.selectListing')}>
-                      <select
-                        required
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.sellerVehicleId ?? ''}
-                        onChange={(e) => update('sellerVehicleId', e.target.value || null)}
-                      >
-                        <option value="" disabled>
-                          {t('source.selectListing')}
-                        </option>
-                        {sellerVehicles.map((v) => (
-                          <option key={v.id} value={v.id}>
-                            {v.make} {v.model} ({v.year}) · {v.price.toLocaleString()} {v.currency}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label={t('field.make')}>
-                      <input
-                        required
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.make}
-                        onChange={(e) => update('make', e.target.value)}
-                        placeholder={t('field.makePlaceholder')}
-                      />
-                    </Field>
-                    <Field label={t('field.model')}>
-                      <input
-                        required
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.model}
-                        onChange={(e) => update('model', e.target.value)}
-                        placeholder={t('field.modelPlaceholder')}
-                      />
-                    </Field>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label={t('field.year')}>
-                      <input
-                        required
-                        type="number"
-                        inputMode="numeric"
-                        min={1990}
-                        max={new Date().getFullYear()}
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.year}
-                        onChange={(e) => updateNumber('year', e.target.value, form.year)}
-                      />
-                    </Field>
-                    <Field label={t('field.km')}>
-                      <input
-                        required
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        step={1000}
-                        className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                        value={form.km}
-                        onChange={(e) => updateNumber('km', e.target.value, form.km)}
-                      />
-                    </Field>
-                  </div>
-                  <Field label={t('field.fuel')}>
-                    <select
-                      required
-                      className="w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                      value={form.fuel}
-                      onChange={(e) => update('fuel', e.target.value as FuelType)}
-                    >
-                      {FUEL_TYPES.map((value) => (
-                        <option key={value} value={value}>{t(`fuel.${value}`)}</option>
-                      ))}
-                    </select>
-                  </Field>
-                  <AdvancedOptionsFields
-                    city={form.city}
-                    yearlyKm={form.yearlyKm}
-                    urbanPercentage={form.urbanPercentage}
-                    onCityChange={(value) => update('city', value)}
-                    onYearlyKmChange={(value) => update('yearlyKm', value)}
-                    onUrbanPercentageChange={(value) => update('urbanPercentage', value)}
-                  />
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
-              >
+              <button type="submit" disabled={status === 'loading'} className="btn btn-primary btn-lg mt-6 w-full">
                 {status === 'loading' && <LoaderIcon className="h-4 w-4 animate-spin" />}
                 {status === 'loading' ? t('action.calculating') : t('action.calculate')}
               </button>
-            </section>
+              <EstimateDisclaimer className="mt-4" />
+            </div>
           </form>
+        </div>
+      </section>
 
-          {/* Step 2: everything else, grouped in one box with each piece
-              as its own inner card. */}
-          <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-            <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-              <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
-              2. {t('results.title')}
+      <div ref={resultsRef} className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-10 sm:px-6 lg:px-8 lg:pt-14">
+        {status === 'idle' && (
+          <section aria-labelledby="preview-title">
+            <h2 id="preview-title" className="eyebrow mb-4 text-muted">
+              {t('results.previewTitle')}
             </h2>
-
-            <div className="space-y-6">
-              {status === 'idle' && (
-                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                  <ScaleIcon className="h-8 w-8 text-[#0F172A]/20" />
-                  <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">
-                    {t('results.idle')}
-                  </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {PREVIEW.map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="card p-5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                    <Icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <h3 className="mt-4 font-heading text-base font-semibold text-ink">{t(title)}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted">{t(desc)}</p>
                 </div>
-              )}
-
-              {status === 'loading' && <LoadingMessages />}
-
-              {status === 'error' && (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
-                  <AlertIcon className="h-8 w-8 text-red-500" />
-                  <p className="max-w-xs text-sm font-semibold text-red-700">
-                    {errorMessage}
-                  </p>
-                </div>
-              )}
-
-              {status === 'success' && result && (
-                <>
-                  {/* Inner card: cost breakdown */}
-                  <div className="rounded-xl border border-gray-200 p-5 sm:p-6">
-                    <CostBreakdownBars
-                      costBreakdown={result.cost_breakdown}
-                      total={result.total_estimated_cost}
-                      period={result.cost_period}
-                    />
-
-                    {result.summary && (
-                      <div className="mt-5 pt-5 border-t border-gray-100">
-                        <h3 className="mb-2 text-sm font-semibold text-[#0F172A]">
-                          {t('results.details')}
-                        </h3>
-                        <p className="text-sm leading-relaxed text-[#0F172A]/70">
-                          {result.summary}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Inner card: common problems */}
-                  <div className="rounded-xl border border-gray-200 p-5 sm:p-6">
-                    <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
-                      <AlertIcon className="h-4 w-4 text-[#F97316]" />
-                      {t('problems.title')}
-                    </h3>
-                    {result.engine.motor_type && (
-                      <p className="mb-4 text-xs text-[#0F172A]/50">{result.engine.motor_type}</p>
-                    )}
-
-                    {result.engine.common_problems.length > 0 ? (
-                      <ul className="space-y-3">
-                        {result.engine.common_problems.map((problem, idx) => (
-                          <li key={idx} className="rounded-lg border border-gray-100 bg-[#F8FAFC] p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-start gap-2">
-                                <AlertIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
-                                <span className="text-sm font-medium text-[#0F172A]">{problem.title}</span>
-                              </div>
-                              <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${SEVERITY_STYLES[problem.severity] ?? SEVERITY_STYLES.medium}`}>
-                                {severityLabels[problem.severity] ?? problem.severity}
-                              </span>
-                            </div>
-                            {problem.description && (
-                              <p className="mt-1.5 pl-6 text-sm text-[#0F172A]/70">{problem.description}</p>
-                            )}
-                            {(problem.estimated_cost_min > 0 || problem.estimated_cost_max > 0) && (
-                              <p className="mt-1.5 pl-6 text-xs font-semibold text-[#0F172A]/50">
-                                {Math.round(problem.estimated_cost_min).toLocaleString()} – {Math.round(problem.estimated_cost_max).toLocaleString()} RON
-                              </p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm font-medium text-[#0F172A]/60">{t('problems.none')}</p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Inner card: average market value - independent of the
-                  cost-estimate status above, starts fetching as soon as
-                  the search is submitted, in parallel. Renders nothing
-                  until a request exists. */}
-              <MarketValueCard
-                key={marketValueKey(activeMarketValueRequest)}
-                request={activeMarketValueRequest}
-                accessToken={accessToken}
-                variant="compact"
-              />
+              ))}
             </div>
           </section>
+        )}
 
-          {/* Inner card: price evolution over the last 5 years - independent
-              of the cost-estimate status above, same trigger as
-              <MarketValueCard>. */}
-          <PriceEvolutionChart
-            series={[
-              {
-                key: 'main',
-                label: `${result?.vehicle.make ?? form.make} ${result?.vehicle.model ?? form.model}`,
-                color: '#2563EB',
-                request: activeMarketValueRequest,
-              },
-            ]}
-            accessToken={accessToken}
-          />
+        <div className="space-y-6">
+          {status === 'loading' && (
+            <div className="card">
+              <LoadingMessages />
+            </div>
+          )}
 
-          <CalculatorFooter result={result} />
+          {status === 'error' && (
+            <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center" role="alert">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-danger-soft text-danger">
+                <AlertIcon className="h-6 w-6" />
+              </span>
+              <p className="max-w-md text-sm font-semibold text-ink">{errorMessage}</p>
+            </div>
+          )}
 
+          {status === 'success' && result && (
+            <>
+              <ResultSummary result={result} />
+
+              <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+                <SectionCard icon={ReceiptIcon} title={t('results.title')} className="animate-in">
+                  <CostBreakdownBars
+                    costBreakdown={result.cost_breakdown}
+                    total={result.total_estimated_cost}
+                    period={result.cost_period}
+                  />
+                  {result.summary && (
+                    <div className="mt-5 rounded-xl bg-canvas p-4">
+                      <h3 className="eyebrow mb-1.5 text-muted">{t('results.details')}</h3>
+                      <p className="text-sm leading-relaxed text-ink/80">{result.summary}</p>
+                    </div>
+                  )}
+                </SectionCard>
+
+                <CommonProblems engine={result.engine} className="animate-in" />
+              </div>
+            </>
+          )}
+
+          {/* Market value and price trend are fetched independently of the
+              cost estimate, starting as soon as the search is submitted. */}
+          {activeMarketValueRequest && (
+            <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <MarketValueCard
+                  key={marketValueKey(activeMarketValueRequest)}
+                  request={activeMarketValueRequest}
+                  accessToken={accessToken}
+                  variant="card"
+                />
+              </div>
+              <div className="lg:col-span-2">
+                <PriceEvolutionChart
+                  series={[{ key: 'main', label: vehicleLabel, color: '#2563EB', request: activeMarketValueRequest }]}
+                  accessToken={accessToken}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block w-full">
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#0F172A]/60">
-        {label}
-      </span>
-      {children}
-    </label>
   );
 }

@@ -2,31 +2,34 @@
 
 import { useLanguage, Language } from '@/lib/language-context';
 
-const OPTIONS: { code: Language; label: string }[] = [
-  { code: 'ro', label: 'RO' },
-  { code: 'en', label: 'EN' },
+const OPTIONS: { code: Language; label: string; name: string }[] = [
+  { code: 'ro', label: 'RO', name: 'Română' },
+  { code: 'en', label: 'EN', name: 'English' },
 ];
 
 export default function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div className="flex items-center rounded-lg border border-gray-200 p-0.5 text-xs font-bold">
-      {OPTIONS.map((option) => (
-        <button
-          key={option.code}
-          type="button"
-          onClick={() => setLanguage(option.code)}
-          aria-pressed={language === option.code}
-          className={`rounded-md px-2.5 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40 ${
-            language === option.code
-              ? 'bg-[#2563EB] text-white'
-              : 'text-[#0F172A]/60 hover:text-[#0F172A]'
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
+    <div role="group" aria-label="Language" className="flex items-center rounded-lg bg-canvas p-0.5 text-xs font-bold">
+      {OPTIONS.map((option) => {
+        const active = language === option.code;
+        return (
+          <button
+            key={option.code}
+            type="button"
+            lang={option.code}
+            onClick={() => setLanguage(option.code)}
+            aria-pressed={active}
+            aria-label={option.name}
+            className={`min-h-8 min-w-9 rounded-md px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${
+              active ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

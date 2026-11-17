@@ -33,11 +33,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <PageHero title={t('auth.login.title')} subtitle={t('auth.login.subtitle')} />
+    <div className="pb-20 text-ink">
+      <PageHero title={t('auth.login.title')} subtitle={t('auth.login.subtitle')} variant="overlap" />
 
-      <div className="mx-auto flex max-w-md flex-col justify-center px-4 py-16 sm:px-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="relative z-10 mx-auto -mt-24 max-w-md px-4 sm:px-6">
+        <div className="card-raised p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <AuthFormField label={t('auth.emailLabel')}>
             <input
               required
@@ -60,7 +61,7 @@ export default function LoginPage() {
           </AuthFormField>
 
           {error && (
-            <p className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
               {error}
             </p>
           )}
@@ -68,19 +69,20 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
+            className="btn btn-primary btn-lg w-full"
           >
             {submitting && <LoaderIcon className="h-4 w-4 animate-spin" />}
             {submitting ? t('auth.login.submitting') : t('auth.login.title')}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-[#0F172A]/60">
+        <p className="mt-6 border-t border-line-soft pt-5 text-center text-sm text-muted">
           {t('auth.login.noAccount')}{' '}
-          <Link href="/signup" className="font-semibold text-[#2563EB] hover:underline">
+          <Link href="/signup" className="link">
             {t('auth.login.createOne')}
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );
