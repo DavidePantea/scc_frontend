@@ -51,9 +51,21 @@ function resolveLabel(item: CostItem, t: TranslateFn): string {
   return translationKey ? t(translationKey) : item.label;
 }
 
-function formatAmount(amount: number, currency: string): string {
-  return `${Math.round(amount).toLocaleString()} ${currency}`;
+function formatAmount(amount: number): string {
+  return Math.round(amount).toLocaleString();
 }
+
+// Segment colours for the stacked bar; each row repeats its swatch next to
+// a text label and amount, so colour is never the only signal.
+const SEGMENTS = [
+  { color: '#1D4ED8', fg: '#FFFFFF' },
+  { color: '#3B82F6', fg: '#FFFFFF' },
+  { color: '#93C5FD', fg: '#0F172A' },
+  { color: '#F97316', fg: '#0F172A' },
+  { color: '#FDBA74', fg: '#0F172A' },
+  { color: '#64748B', fg: '#FFFFFF' },
+  { color: '#CBD5E1', fg: '#0F172A' },
+];
 
 interface CostBreakdownBarsProps {
   costBreakdown: CostItem[];
@@ -69,51 +81,68 @@ export default function CostBreakdownBars({ costBreakdown, total, period }: Cost
   };
   const totalAmount = total.amount > 0 ? total.amount : 0;
   const periodLabel = periodLabels[period] ?? (period ? `/ ${period}` : '');
+  const items = [...costBreakdown]
+    .sort((a, b) => b.amount - a.amount)
+    .map((item, idx) => ({
+      item,
+      ...SEGMENTS[idx % SEGMENTS.length],
+      pct: totalAmount > 0 ? Math.max(0, Math.min(100, (item.amount / totalAmount) * 100)) : 0,
+    }));
 
   return (
-    <div className="space-y-5">
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
-            <ScaleIcon className="h-4 w-4 text-[#0F172A]/50" />
-            {resolveLabel(total, t)}
-          </div>
-          <span className="whitespace-nowrap text-sm font-bold text-[#0F172A]">
-            {formatAmount(total.amount, total.currency)}
-            {periodLabel && <span className="ml-1 font-normal text-[#0F172A]/50">{periodLabel}</span>}
+    <div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p className="text-sm font-medium text-muted">{resolveLabel(total, t)}</p>
+        <p className="tabular font-heading text-2xl font-bold tracking-tight text-ink">
+          {formatAmount(total.amount)}
+          <span className="ml-1.5 text-sm font-semibold text-muted">
+            {total.currency} {periodLabel}
           </span>
-        </div>
-        <div className="h-3 w-full overflow-hidden rounded-full bg-[#F8FAFC]">
-          <div className="h-full w-full rounded-full bg-[#0F172A]" />
-        </div>
+        </p>
       </div>
 
-      <div className="space-y-4">
-        {costBreakdown.map((item) => {
+      <div className="mt-3 flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-line-soft" aria-hidden>
+        {items.map(({ item, color, pct }) => (
+          <div
+            key={item.key}
+            className="h-full transition-[width] duration-700 first:rounded-l-full last:rounded-r-full"
+            style={{ width: `${pct}%`, backgroundColor: color }}
+          />
+        ))}
+      </div>
+
+      <ul className="mt-5 divide-y divide-line-soft">
+        {items.map(({ item, color, fg, pct }) => {
           const Icon = resolveIcon(item);
-          const pct = totalAmount > 0 ? Math.max(0, Math.min(100, (item.amount / totalAmount) * 100)) : 0;
           return (
-            <div key={item.key} className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <div className="flex items-center gap-2 font-medium text-[#0F172A]">
-                  <Icon className="h-4 w-4 shrink-0 text-[#0F172A]/50" />
-                  {resolveLabel(item, t)}
+            <li key={item.key} className="flex items-center gap-3 py-3">
+              <span
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                style={{ backgroundColor: color, color: fg }}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="truncate text-sm font-medium text-ink">{resolveLabel(item, t)}</span>
+                  <span className="tabular whitespace-nowrap text-sm font-semibold text-ink">
+                    {formatAmount(item.amount)} <span className="font-normal text-muted">{item.currency}</span>
+                  </span>
                 </div>
-                <span className="whitespace-nowrap font-semibold text-[#2563EB]">
-                  {formatAmount(item.amount, item.currency)}
-                  <span className="ml-1.5 text-xs font-normal text-[#0F172A]/40">{Math.round(pct)}%</span>
-                </span>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line-soft">
+                    <div
+                      className="h-full rounded-full transition-[width] duration-700"
+                      style={{ width: `${pct}%`, backgroundColor: color }}
+                    />
+                  </div>
+                  <span className="tabular w-9 text-right text-xs font-medium text-muted">{Math.round(pct)}%</span>
+                </div>
               </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#F8FAFC]">
-                <div
-                  className="h-full rounded-full bg-[#2563EB] transition-all duration-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 }

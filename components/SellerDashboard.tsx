@@ -25,9 +25,9 @@ const CONDITIONS: SellerVehicleCondition[] = ['excellent', 'good', 'fair', 'poor
 const STATUSES: SellerVehicleStatus[] = ['active', 'sold', 'draft'];
 
 const STATUS_STYLES: Record<SellerVehicleStatus, string> = {
-  active: 'bg-[#2563EB]/10 text-[#2563EB]',
-  sold: 'bg-[#0F172A]/10 text-[#0F172A]/60',
-  draft: 'bg-[#F97316]/10 text-[#F97316]',
+  active: 'bg-brand-soft text-brand',
+  sold: 'bg-line-soft text-muted',
+  draft: 'bg-accent-soft text-accent-ink',
 };
 
 interface FormState {
@@ -187,13 +187,13 @@ export default function SellerDashboard() {
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-[#0F172A]">{t('seller.dashboard.title')}</h1>
-          <p className="mt-1 text-sm text-[#0F172A]/60">{t('seller.dashboard.subtitle')}</p>
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-ink">{t('seller.dashboard.title')}</h1>
+          <p className="mt-1 text-sm text-muted">{t('seller.dashboard.subtitle')}</p>
         </div>
         <button
           type="button"
           onClick={openCreateForm}
-          className="rounded-xl bg-[#F97316] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30"
+          className="btn btn-primary"
         >
           {t('seller.dashboard.addNew')}
         </button>
@@ -202,9 +202,9 @@ export default function SellerDashboard() {
       {formOpen && (
         <form
           onSubmit={handleSubmit}
-          className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+          className="mb-8 card p-6 sm:p-8"
         >
-          <h2 className="font-heading mb-6 text-lg font-semibold text-[#0F172A]">
+          <h2 className="font-heading mb-6 text-lg font-semibold text-ink">
             {editingId ? t('seller.form.editTitle') : t('seller.form.addTitle')}
           </h2>
 
@@ -278,7 +278,7 @@ export default function SellerDashboard() {
 
           <div className="mt-5">
             <AuthFormField label={t('field.drivingEnv')}>
-              <div className="rounded-lg border border-gray-200 bg-[#F8FAFC] px-4 py-3">
+              <div className="rounded-xl border border-line bg-canvas px-4 py-3">
                 <input
                   type="range"
                   min={0}
@@ -286,12 +286,12 @@ export default function SellerDashboard() {
                   step={1}
                   value={form.urban_percentage}
                   onChange={(e) => update('urban_percentage', Number(e.target.value))}
-                  className="w-full accent-[#2563EB]"
+                  className="w-full accent-brand"
                   aria-label={t('field.drivingEnv')}
                 />
-                <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-[#0F172A]/50">
+                <div className="mt-1.5 flex items-center justify-between text-xs font-semibold text-muted">
                   <span>{t('field.rural')}</span>
-                  <span className="text-[#2563EB]">
+                  <span className="text-brand">
                     {form.urban_percentage}% {t('field.urban')}
                   </span>
                   <span>{t('field.urban')}</span>
@@ -374,7 +374,7 @@ export default function SellerDashboard() {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1D4ED8] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn btn-brand"
             >
               {saving && <LoaderIcon className="h-4 w-4 animate-spin" />}
               {saving ? t('seller.form.saving') : t('seller.form.save')}
@@ -382,7 +382,7 @@ export default function SellerDashboard() {
             <button
               type="button"
               onClick={() => setFormOpen(false)}
-              className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-bold text-[#0F172A] transition-all hover:bg-gray-50"
+              className="btn btn-secondary"
             >
               {t('seller.form.cancel')}
             </button>
@@ -391,20 +391,20 @@ export default function SellerDashboard() {
       )}
 
       {status === 'loading' && (
-        <div className="flex items-center gap-2 py-10 text-sm text-[#0F172A]/60">
+        <div className="flex items-center gap-2 py-10 text-sm text-muted">
           <LoaderIcon className="h-4 w-4 animate-spin" />
           {t('seller.dashboard.loading')}
         </div>
       )}
 
       {status === 'error' && (
-        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+        <p className="rounded-xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm font-semibold text-red-700">
           {errorMessage}
         </p>
       )}
 
       {status === 'success' && vehicles.length === 0 && !formOpen && (
-        <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-[#0F172A]/60">
+        <p className="rounded-[1.25rem] border border-dashed border-line bg-surface p-8 text-center text-sm text-muted">
           {t('seller.dashboard.empty')}
         </p>
       )}
@@ -412,13 +412,13 @@ export default function SellerDashboard() {
       {status === 'success' && vehicles.length > 0 && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {vehicles.map((v) => (
-            <div key={v.id} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div key={v.id} className="flex flex-col card p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-heading text-lg font-semibold text-[#0F172A]">
+                  <h3 className="font-heading text-lg font-semibold text-ink">
                     {v.make} {v.model} · {v.year}
                   </h3>
-                  <p className="mt-0.5 text-sm text-[#0F172A]/60">
+                  <p className="mt-0.5 text-sm text-muted">
                     {t(`fuel.${v.fuel_type as FuelType}`)} · {v.km.toLocaleString()} km
                   </p>
                 </div>
@@ -429,34 +429,34 @@ export default function SellerDashboard() {
                 </span>
               </div>
 
-              <p className="mt-3 flex items-center gap-1.5 text-lg font-bold text-[#2563EB]">
+              <p className="mt-3 flex items-center gap-1.5 text-lg font-bold text-brand">
                 <PriceTagIcon className="h-5 w-5" />
                 {formatMoney(v.price)}
               </p>
 
-              {v.location && <p className="mt-1 text-xs text-[#0F172A]/50">{v.location}</p>}
+              {v.location && <p className="mt-1 text-xs text-muted">{v.location}</p>}
 
               <div className="mt-4">
                 <MarketValueCard request={{ seller_vehicle_id: v.id }} accessToken={accessToken} />
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+              <div className="mt-5 flex flex-wrap gap-2 border-t border-line-soft pt-4">
                 <Link
                   href={`/?useListing=${v.id}`}
-                  className="rounded-lg bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] transition-colors hover:bg-gray-100"
+                  className="rounded-lg bg-canvas px-3 py-2 text-xs font-bold text-ink transition-colors hover:bg-line-soft"
                 >
                   {t('seller.card.research')}
                 </Link>
                 <Link
                   href={`/compare?useListingA=${v.id}`}
-                  className="rounded-lg bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] transition-colors hover:bg-gray-100"
+                  className="rounded-lg bg-canvas px-3 py-2 text-xs font-bold text-ink transition-colors hover:bg-line-soft"
                 >
                   {t('seller.card.compare')}
                 </Link>
                 <button
                   type="button"
                   onClick={() => openEditForm(v)}
-                  className="rounded-lg bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] transition-colors hover:bg-gray-100"
+                  className="rounded-lg bg-canvas px-3 py-2 text-xs font-bold text-ink transition-colors hover:bg-line-soft"
                 >
                   {t('seller.card.edit')}
                 </button>

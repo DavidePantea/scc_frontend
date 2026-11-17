@@ -36,11 +36,12 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <PageHero title={t('auth.signup.title')} subtitle={t('auth.signup.subtitle')} />
+    <div className="pb-20 text-ink">
+      <PageHero title={t('auth.signup.title')} subtitle={t('auth.signup.subtitle')} variant="overlap" />
 
-      <div className="mx-auto flex max-w-md flex-col justify-center px-4 py-16 sm:px-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="relative z-10 mx-auto -mt-24 max-w-md px-4 sm:px-6">
+        <div className="card-raised p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <AuthFormField label={t('auth.signup.nameLabel')}>
             <input
               type="text"
@@ -71,9 +72,10 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </AuthFormField>
-          <p className="text-xs text-[#0F172A]/50">{t('auth.signup.passwordHint')}</p>
+          <p className="text-xs text-muted">{t('auth.signup.passwordHint')}</p>
 
-          <AuthFormField label={t('auth.signup.accountType')}>
+          <fieldset>
+            <legend className="field-label">{t('auth.signup.accountType')}</legend>
             <div className="grid grid-cols-2 gap-3">
               {(['buyer', 'seller'] as const).map((value) => {
                 const selected = accountType === value;
@@ -83,27 +85,27 @@ export default function SignupPage() {
                     type="button"
                     onClick={() => setAccountType(value)}
                     aria-pressed={selected}
-                    className={`rounded-lg border px-4 py-3 text-left transition-colors ${
+                    className={`rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/20 ${
                       selected
-                        ? 'border-[#2563EB] bg-[#2563EB]/5'
-                        : 'border-gray-200 bg-[#F8FAFC] hover:border-[#2563EB]/40'
+                        ? 'border-brand bg-brand-soft ring-1 ring-brand'
+                        : 'border-line bg-canvas hover:border-ink/25'
                     }`}
                   >
-                    <span className="block text-sm font-semibold text-[#0F172A]">
+                    <span className="block text-sm font-semibold text-ink">
                       {t(`auth.signup.accountType.${value}`)}
                     </span>
-                    <span className="mt-0.5 block text-xs text-[#0F172A]/60">
+                    <span className="mt-0.5 block text-xs text-muted">
                       {t(`auth.signup.accountType.${value}Hint`)}
                     </span>
                   </button>
                 );
               })}
             </div>
-            <p className="mt-2 text-xs text-[#0F172A]/50">{t('auth.signup.accountType.fixedNotice')}</p>
-          </AuthFormField>
+            <p className="mt-2 text-xs text-muted">{t('auth.signup.accountType.fixedNotice')}</p>
+          </fieldset>
 
           {error && (
-            <p className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm font-medium text-danger">
               {error}
             </p>
           )}
@@ -111,19 +113,20 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#F97316] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30 disabled:cursor-not-allowed disabled:opacity-70"
+            className="btn btn-primary btn-lg w-full"
           >
             {submitting && <LoaderIcon className="h-4 w-4 animate-spin" />}
             {submitting ? t('auth.signup.submitting') : t('auth.signup.title')}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-[#0F172A]/60">
+        <p className="mt-6 border-t border-line-soft pt-5 text-center text-sm text-muted">
           {t('auth.signup.haveAccount')}{' '}
-          <Link href="/login" className="font-semibold text-[#2563EB] hover:underline">
+          <Link href="/login" className="link">
             {t('auth.signup.login')}
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

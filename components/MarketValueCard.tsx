@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import SectionCard from './SectionCard';
 import { AlertIcon, LoaderIcon, PriceTagIcon } from './icons';
 import { fetchMarketValue, type MarketValue, type MarketValueRequest } from '../lib/api';
 import { useLanguage } from '../lib/language-context';
@@ -9,9 +10,8 @@ interface MarketValueCardProps {
   request: MarketValueRequest | null;
   accessToken?: string | null;
   // 'compact' (default) is a small inline widget for a card that already has
-  // its own chrome (e.g. a seller listing card). 'card' renders full section
-  // chrome matching the other calculator cards (border, shadow, fixed
-  // height), for use as a standalone grid cell.
+  // its own chrome (e.g. a seller listing card). 'card' renders a full
+  // results card matching the other calculator sections.
   variant?: 'compact' | 'card';
 }
 
@@ -46,96 +46,85 @@ export default function MarketValueCard({ request, accessToken, variant = 'compa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const range =
+    value && value.price_min != null && value.price_max != null
+      ? `${Math.round(value.price_min).toLocaleString()} – ${Math.round(value.price_max).toLocaleString()} ${value.currency}`
+      : null;
+
   if (variant === 'card') {
+    if (!request) return null;
     return (
-      <section className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm lg:h-[34rem]">
-        <h2 className="font-heading mb-1 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-          <PriceTagIcon className="h-5 w-5 text-[#2563EB]" />
-          {t('marketValue.title')}
-        </h2>
-
-        {(status === 'idle' || !request) && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-            <PriceTagIcon className="h-8 w-8 text-[#0F172A]/20" />
-            <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">{t('marketValue.idle')}</p>
-          </div>
-        )}
-
-        {status === 'loading' && request && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center">
-            <LoaderIcon className="h-8 w-8 animate-spin text-[#0F172A]/20" />
-            <p className="max-w-xs text-sm font-medium text-[#0F172A]/60">{t('marketValue.loading')}</p>
+      <SectionCard icon={PriceTagIcon} title={t('marketValue.title')} className="h-full">
+        {status === 'loading' && (
+          <div className="space-y-3" aria-live="polite">
+            <div className="h-10 w-48 animate-pulse rounded-lg bg-line-soft" />
+            <div className="h-4 w-36 animate-pulse rounded bg-line-soft" />
+            <p className="flex items-center gap-2 pt-2 text-sm text-muted">
+              <LoaderIcon className="h-4 w-4 animate-spin" />
+              {t('marketValue.loading')}
+            </p>
           </div>
         )}
 
         {status === 'error' && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border border-red-100 bg-red-50 py-10 px-6 text-center">
-            <AlertIcon className="h-8 w-8 text-red-500" />
-            <p className="max-w-xs text-sm font-semibold text-red-700">{error}</p>
-            <button
-              type="button"
-              onClick={handleFetch}
-              className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-200"
-            >
+          <div className="flex flex-col items-start gap-3 rounded-xl bg-danger-soft p-4">
+            <p className="flex items-start gap-2 text-sm font-medium text-danger">
+              <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+              {error}
+            </p>
+            <button type="button" onClick={handleFetch} className="btn btn-secondary min-h-9 px-3 py-1.5 text-xs">
               {t('marketValue.retry')}
             </button>
           </div>
         )}
 
         {status === 'success' && value && (
-          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-            <p className="font-heading text-4xl font-bold tracking-tight text-[#2563EB]">
-              {Math.round(value.average_price).toLocaleString()} {value.currency}
+          <div className="animate-in">
+            <p className="tabular font-heading text-4xl font-bold tracking-tight text-ink">
+              {Math.round(value.average_price).toLocaleString()}
+              <span className="ml-2 text-lg font-semibold text-muted">{value.currency}</span>
             </p>
-            <p className="mt-2 text-sm font-semibold text-[#0F172A]/50">
+            <p className="mt-1 text-sm text-muted">
               {t('marketValue.in')} {value.country}
-              {value.price_min != null && value.price_max != null && (
-                <>
-                  {' '}
-                  · {Math.round(value.price_min).toLocaleString()} – {Math.round(value.price_max).toLocaleString()}{' '}
-                  {value.currency}
-                </>
-              )}
             </p>
-            {value.summary && (
-              <p className="mt-4 border-t border-gray-100 pt-4 text-sm leading-relaxed text-[#0F172A]/70">
-                {value.summary}
+            {range && (
+              <p className="tabular mt-4 inline-flex rounded-lg bg-canvas px-3 py-1.5 text-sm font-semibold text-ink">
+                {range}
               </p>
+            )}
+            {value.summary && (
+              <p className="mt-4 border-t border-line-soft pt-4 text-sm leading-relaxed text-muted">{value.summary}</p>
             )}
           </div>
         )}
-      </section>
+      </SectionCard>
     );
   }
 
   if (!request) return null;
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-[#F8FAFC] p-4">
+    <div className="rounded-xl border border-line-soft bg-canvas p-4">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[#0F172A]">
-          <PriceTagIcon className="h-4 w-4 text-[#2563EB]" />
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+          <PriceTagIcon className="h-4 w-4 text-brand" />
           {t('marketValue.title')}
         </h3>
         {status === 'loading' && (
-          <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[#0F172A]/50">
+          <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-muted">
             <LoaderIcon className="h-3.5 w-3.5 animate-spin" />
             {t('marketValue.loading')}
           </span>
         )}
         {status === 'error' && (
-          <button
-            type="button"
-            onClick={handleFetch}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[#2563EB]/10 px-3 py-1.5 text-xs font-bold text-[#2563EB] transition-colors hover:bg-[#2563EB]/20"
-          >
+          <button type="button" onClick={handleFetch} className="btn btn-secondary min-h-8 px-3 py-1 text-xs">
             {t('marketValue.retry')}
           </button>
         )}
       </div>
 
       {status === 'error' && (
-        <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-red-600">
+        <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-danger">
           <AlertIcon className="h-3.5 w-3.5 shrink-0" />
           {error}
         </p>
@@ -143,20 +132,14 @@ export default function MarketValueCard({ request, accessToken, variant = 'compa
 
       {status === 'success' && value && (
         <div className="mt-2">
-          <p className="font-heading text-xl font-bold text-[#2563EB]">
+          <p className="tabular font-heading text-xl font-bold text-ink">
             {Math.round(value.average_price).toLocaleString()} {value.currency}
           </p>
-          <p className="mt-0.5 text-xs font-semibold text-[#0F172A]/50">
+          <p className="tabular mt-0.5 text-xs font-medium text-muted">
             {t('marketValue.in')} {value.country}
-            {value.price_min != null && value.price_max != null && (
-              <>
-                {' '}
-                · {Math.round(value.price_min).toLocaleString()} – {Math.round(value.price_max).toLocaleString()}{' '}
-                {value.currency}
-              </>
-            )}
+            {range && <> · {range}</>}
           </p>
-          {value.summary && <p className="mt-1.5 text-xs text-[#0F172A]/60">{value.summary}</p>}
+          {value.summary && <p className="mt-1.5 text-xs text-muted">{value.summary}</p>}
         </div>
       )}
     </div>

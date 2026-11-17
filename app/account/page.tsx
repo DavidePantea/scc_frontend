@@ -63,72 +63,73 @@ function AccountContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="pb-20 text-ink">
       <PageHero
         title={`${t('account.welcomeBack')}${user.name ? `, ${user.name}` : ''}`}
         subtitle={t('account.subtitle')}
+        variant="overlap"
       />
 
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-[#0F172A]">
-            <ScaleIcon className="h-5 w-5 text-[#2563EB]" />
+      <div className="relative z-10 mx-auto -mt-24 max-w-3xl px-4 sm:px-6 lg:px-8">
+        <section className="card-raised p-6 sm:p-8">
+          <h2 className="font-heading mb-6 flex items-center gap-2 text-lg font-semibold text-ink">
+            <ScaleIcon className="h-5 w-5 text-brand" />
             {t('account.info.title')}
           </h2>
           <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-[#0F172A]/50">{t('account.info.name')}</dt>
-              <dd className="mt-1 text-sm font-medium text-[#0F172A]">{user.name ?? '—'}</dd>
+              <dt className="eyebrow text-muted">{t('account.info.name')}</dt>
+              <dd className="mt-1 text-sm font-medium text-ink">{user.name ?? '—'}</dd>
             </div>
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-[#0F172A]/50">{t('account.info.email')}</dt>
-              <dd className="mt-1 text-sm font-medium text-[#0F172A]">{user.email}</dd>
+              <dt className="eyebrow text-muted">{t('account.info.email')}</dt>
+              <dd className="mt-1 text-sm font-medium text-ink">{user.email}</dd>
             </div>
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-[#0F172A]/50">{t('account.info.emailStatus')}</dt>
+              <dt className="eyebrow text-muted">{t('account.info.emailStatus')}</dt>
               <dd className="mt-1 flex items-center gap-1.5 text-sm font-medium">
                 {user.emailVerified ? (
                   <>
-                    <CheckCircleIcon className="h-4 w-4 text-[#2563EB]" />
-                    <span className="text-[#0F172A]">{t('account.info.verified')}</span>
+                    <CheckCircleIcon className="h-4 w-4 text-success" />
+                    <span className="text-ink">{t('account.info.verified')}</span>
                   </>
                 ) : (
                   <>
-                    <AlertIcon className="h-4 w-4 text-[#F97316]" />
-                    <span className="text-[#0F172A]">{t('account.info.unverified')}</span>
+                    <AlertIcon className="h-4 w-4 text-accent-ink" />
+                    <span className="text-ink">{t('account.info.unverified')}</span>
                   </>
                 )}
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-[#0F172A]/50">{t('account.info.memberSince')}</dt>
-              <dd className="mt-1 text-sm font-medium text-[#0F172A]">{memberSince}</dd>
+              <dt className="eyebrow text-muted">{t('account.info.memberSince')}</dt>
+              <dd className="mt-1 text-sm font-medium text-ink">{memberSince}</dd>
             </div>
           </dl>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="font-heading mb-2 text-lg font-semibold text-[#0F172A]">
+        <section className="card mt-6 p-6 sm:p-8">
+          <h2 className="font-heading mb-3 text-lg font-semibold tracking-tight text-ink">
             {t('account.estimates.title')}
           </h2>
 
           {historyStatus === 'loading' && (
-            <div className="flex items-center gap-2 py-6 text-sm text-[#0F172A]/60">
+            <div className="flex items-center gap-2 py-6 text-sm text-muted">
               <LoaderIcon className="h-4 w-4 animate-spin" />
               {t('account.estimates.loading')}
             </div>
           )}
 
           {historyStatus === 'error' && (
-            <p className="py-4 text-sm font-semibold text-red-600">{historyError}</p>
+            <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-sm font-medium text-danger">{historyError}</p>
           )}
 
           {historyStatus === 'success' && items.length === 0 && (
             <>
-              <p className="mb-4 text-sm text-[#0F172A]/60">{t('account.estimates.empty')}</p>
+              <p className="mb-4 text-sm text-muted">{t('account.estimates.empty')}</p>
               <Link
                 href="/"
-                className="inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1D4ED8] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#2563EB]/30"
+                className="btn btn-primary"
               >
                 {t('account.estimates.cta')}
               </Link>
@@ -136,27 +137,27 @@ function AccountContent() {
           )}
 
           {historyStatus === 'success' && items.length > 0 && (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-line-soft">
               {items.map((item) => (
                 <li key={`${item.type}-${item.id}`}>
                   <Link
                     href={item.type === 'simple' ? `/?researchId=${item.id}` : `/compare?researchId=${item.id}`}
-                    className="-mx-2 flex items-center justify-between gap-4 rounded-lg px-2 py-4 transition-colors hover:bg-[#F8FAFC]"
+                    className="-mx-3 flex min-h-14 items-center justify-between gap-4 rounded-xl px-3 py-3.5 transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-[#0F172A]">
+                      <p className="text-sm font-semibold text-ink">
                         {item.type === 'simple'
                           ? `${item.make} ${item.model} · ${item.year}`
                           : `${item.vehicle_a.make} ${item.vehicle_a.model} vs. ${item.vehicle_b.make} ${item.vehicle_b.model}`}
                       </p>
-                      <p className="mt-0.5 text-xs text-[#0F172A]/50">
+                      <p className="mt-0.5 text-xs text-muted">
                         {item.type === 'simple' ? t('account.estimates.typeSingle') : t('account.estimates.typeComparison')}
                         {' · '}
                         {dateFormatter.format(new Date(item.created_at))}
                       </p>
                     </div>
                     {item.type === 'simple' && (
-                      <p className="shrink-0 text-sm font-bold text-[#2563EB]">
+                      <p className="tabular shrink-0 text-sm font-bold text-ink">
                         {Math.round(item.total_estimated_cost.amount).toLocaleString()} {item.total_estimated_cost.currency}
                       </p>
                     )}
@@ -172,7 +173,7 @@ function AccountContent() {
           onClick={() => {
             void logout();
           }}
-          className="mt-6 rounded-xl border border-gray-200 px-5 py-3 text-sm font-bold text-[#0F172A] transition-all hover:bg-gray-50"
+          className="btn btn-secondary mt-6"
         >
           {t('account.logout')}
         </button>

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import CtaBanner from './CtaBanner';
 import PageHero from './PageHero';
 import { PriceTagIcon, ReceiptIcon, ShieldIcon } from './icons';
 import { useLanguage } from '../lib/language-context';
@@ -18,45 +18,35 @@ export default function About() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
-      <PageHero title={t('about.heroTitle')} subtitle={t('about.heroSubtitle')} />
+    <div className="pb-20 text-ink">
+      <PageHero eyebrow={t('footer.about')} title={t('about.heroTitle')} subtitle={t('about.heroSubtitle')} />
 
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="font-heading mb-3 text-xl font-semibold text-[#0F172A]">{t('about.mission.title')}</h2>
-          <p className="max-w-3xl text-sm leading-relaxed text-[#0F172A]/70 sm:text-base">
+      <div className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 lg:px-8">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <p className="eyebrow text-brand">{t('about.mission.title')}</p>
+          </div>
+          <p className="text-pretty font-heading text-xl font-medium leading-relaxed tracking-tight text-ink sm:text-2xl lg:col-span-8">
             {t('about.mission.desc')}
           </p>
         </section>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-3">
           {VALUES.map((value) => {
             const Icon = value.icon;
             return (
-              <section
-                key={value.title}
-                className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
-              >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+              <section key={value.title} className="card flex flex-col p-6 sm:p-7">
+                <span className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand">
                   <Icon className="h-5 w-5" />
-                </div>
-                <h2 className="font-heading mb-2 text-lg font-semibold text-[#0F172A]">{t(value.title)}</h2>
-                <p className="text-sm leading-relaxed text-[#0F172A]/70">{t(value.desc)}</p>
+                </span>
+                <h2 className="font-heading text-lg font-semibold tracking-tight">{t(value.title)}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t(value.desc)}</p>
               </section>
             );
           })}
         </div>
 
-        <section className="mt-8 rounded-2xl bg-[#2563EB] p-8 text-center sm:p-10">
-          <h2 className="font-heading text-2xl font-bold text-white">{t('about.ctaTitle')}</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-white/80 sm:text-base">{t('about.ctaDesc')}</p>
-          <Link
-            href="/"
-            className="mt-6 inline-flex items-center justify-center rounded-xl bg-[#F97316] px-6 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#EA580C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#F97316]/30"
-          >
-            {t('about.ctaButton')}
-          </Link>
-        </section>
+        <CtaBanner title={t('about.ctaTitle')} description={t('about.ctaDesc')} cta={t('about.ctaButton')} />
       </div>
     </div>
   );

@@ -28,8 +28,8 @@ export const translations = {
   'footer.addressValue': { ro: 'București, România', en: 'Bucharest, Romania' },
   'footer.rightsReserved': { ro: 'Toate drepturile rezervate.', en: 'All rights reserved.' },
 
-  'hero.titleLine1': { ro: 'DE LA SECOND-HAND', en: 'FROM SECOND-HAND' },
-  'hero.titleLine2': { ro: 'LA SMART CHOICE', en: 'TO SMART CHOICE' },
+  'hero.titleLine1': { ro: 'De la second-hand', en: 'From second-hand' },
+  'hero.titleLine2': { ro: 'la smart choice', en: 'to smart choice' },
   'hero.subtitle': {
     ro: 'Compară costul total de utilizare și descoperă cât de avantajos este să conduci un vehicul nou.',
     en: 'Compare the total cost of ownership and discover how advantageous it is to drive a new vehicle.',
@@ -481,6 +481,42 @@ export const translations = {
     ro: 'Cel mai simplu mod de a ne contacta este prin email — de obicei răspundem în câteva zile lucrătoare.',
     en: 'The easiest way to reach us is by email — we typically reply within a few business days.',
   },
+
+  // Redesign (hero, results preview, comparison verdict)
+  'hero.eyebrow': { ro: 'Estimări AI pentru piața auto din România', en: 'AI estimates for the Romanian car market' },
+  'hero.point1': { ro: 'Costul real pe an, defalcat pe categorii', en: 'The real yearly cost, broken down by category' },
+  'hero.point2': { ro: 'Problemele frecvente ale motorului și costul reparațiilor', en: 'Common engine problems and what repairs cost' },
+  'hero.point3': { ro: 'Valoarea de piață și evoluția prețului pe 5 ani', en: 'Market value and a 5-year price trend' },
+  'nav.calculator': { ro: 'Calculator', en: 'Calculator' },
+  'footer.product': { ro: 'Produs', en: 'Product' },
+  'results.previewTitle': { ro: 'Ce vei primi', en: 'What you will get' },
+  'results.preview1Title': { ro: 'Defalcarea costurilor', en: 'Cost breakdown' },
+  'results.preview1Desc': {
+    ro: 'Combustibil, întreținere, asigurare, taxe și pierderea de valoare, pe un singur ecran.',
+    en: 'Fuel, maintenance, insurance, taxes and depreciation on a single screen.',
+  },
+  'results.preview2Title': { ro: 'Probleme cunoscute', en: 'Known problems' },
+  'results.preview2Desc': {
+    ro: 'Defectele tipice pentru motorul și kilometrajul tău, cu intervale de cost.',
+    en: 'Typical faults for your engine and mileage, with cost ranges.',
+  },
+  'results.preview3Title': { ro: 'Valoare de piață', en: 'Market value' },
+  'results.preview3Desc': {
+    ro: 'Prețul mediu actual și cum a evoluat în ultimii ani.',
+    en: 'The current average price and how it has moved in recent years.',
+  },
+  'trust.title': { ro: 'De ce să iei în calcul o mașină mai nouă', en: 'Why consider a newer car' },
+  'compare.heroTitle': { ro: 'Compară două mașini', en: 'Compare two cars' },
+  'compare.heroSubtitle': {
+    ro: 'Pune față în față costurile reale de utilizare și vezi care alegere te costă mai puțin.',
+    en: 'Put the real running costs side by side and see which choice costs you less.',
+  },
+  'compare.sideA': { ro: 'Vehicul A', en: 'Vehicle A' },
+  'compare.sideB': { ro: 'Vehicul B', en: 'Vehicle B' },
+  'compare.verdict': { ro: 'Verdict', en: 'Verdict' },
+  'compare.costsLessPrefix': { ro: 'costă cu', en: 'costs' },
+  'compare.costsLessSuffix': { ro: 'mai puțin', en: 'less' },
+  'compare.similar': { ro: 'Costurile estimate sunt practic identice.', en: 'The estimated costs are practically identical.' },
 } as const satisfies Record<string, Record<Language, string>>;
 
 export type TranslationKey = keyof typeof translations;

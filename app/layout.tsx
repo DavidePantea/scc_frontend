@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Montserrat, Inter } from "next/font/google";
+import { Bricolage_Grotesque, Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import Header from "@/components/Header"; // Import the new Header
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/lib/auth-context";
 import { LanguageProvider } from "@/lib/language-context";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
+// latin-ext carries the Romanian diacritics (ă, â, î, ș, ț).
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin", "latin-ext"],
 });
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -35,20 +35,17 @@ export default function RootLayout({
   return (
     <html
       lang="ro"
-      className={`${montserrat.variable} ${inter.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#F8FAFC] font-sans">
+      <body className="min-h-full flex flex-col bg-canvas font-sans text-ink">
         <LanguageProvider>
           <AuthProvider>
-            {/* The global header sits at the very top */}
             <Header />
 
-            {/* Main page content grows to fill available space */}
             <main className="flex-grow">
               {children}
             </main>
 
-            {/* The true footer sits at the bottom */}
             <Footer />
           </AuthProvider>
         </LanguageProvider>

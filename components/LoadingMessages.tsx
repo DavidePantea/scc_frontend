@@ -41,26 +41,26 @@ export default function LoadingMessages({ className }: { className?: string }) {
   const Icon = step.icon;
 
   return (
-    <div className={`flex flex-col items-center justify-center gap-4 py-12 text-center ${className ?? ''}`}>
-      <span className="relative flex h-14 w-14 items-center justify-center">
-        <span className="absolute inset-0 animate-ping rounded-full bg-[#2563EB]/10" />
-        <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[#2563EB]/10">
-          <Icon key={index} className="h-6 w-6 text-[#2563EB]" />
+    <div
+      className={`flex flex-col items-center justify-center gap-5 py-12 text-center ${className ?? ''}`}
+      role="status"
+      aria-live="polite"
+    >
+      <span className="relative flex h-16 w-16 items-center justify-center">
+        <span className="absolute inset-0 animate-ping rounded-2xl bg-brand/10 [animation-duration:1.8s]" />
+        <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-[0_8px_24px_-6px_rgb(37_99_235/0.55)]">
+          <Icon key={index} className="animate-in h-6 w-6" />
         </span>
       </span>
-      <p
-        key={index}
-        className="max-w-xs text-sm font-medium text-[#0F172A]/60"
-        style={{ animation: 'fade-in-up 0.35s ease-out' }}
-      >
+      <p key={index} className="animate-in max-w-xs font-heading text-base font-semibold text-ink">
         {language === 'ro' ? step.ro : step.en}
       </p>
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5" aria-hidden>
         {STEPS.map((_, i) => (
           <span
             key={i}
-            className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
-              i === index ? 'bg-[#2563EB]' : 'bg-[#0F172A]/10'
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === index ? 'w-5 bg-brand' : i < index ? 'w-1.5 bg-brand/40' : 'w-1.5 bg-ink/10'
             }`}
           />
         ))}

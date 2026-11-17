@@ -23,8 +23,9 @@ backend service and is not part of this codebase.
    - a confidence score for the estimate
    - a list of common problems reported for that engine, with severity and
      estimated repair cost ranges
-4. The UI renders all of this across three panels: inputs, cost analysis,
-   and common problems, plus a results summary bar underneath.
+4. The UI shows a result banner with the total and confidence, then the
+   cost breakdown, common problems, market value and a 5-year price chart.
+   See `design-system/smartcarcompare/MASTER.md` for the visual system.
 
 The app is in Romanian (all UI copy, error messages, etc.) since it targets
 the Romanian used-car market.
@@ -38,23 +39,34 @@ app/
   login/page.tsx       Login form, calls auth-service directly
   signup/page.tsx      Signup form, calls auth-service directly
   account/page.tsx     Protected landing page: account info, guarded by RequireAuth
-  globals.css          Tailwind base styles
+  globals.css          Design tokens (@theme) and component classes (.card, .btn, .input, ...)
 components/
-  CostCalculator.tsx   Main stateful component: form state, API call, result rendering
-  CalculatorHeader.tsx Banner/header for the calculator section
-  CalculatorFooter.tsx Results summary bar (total cost, confidence, CTAs)
-  CostBreakdownBars.tsx Bar-chart style rendering of the cost breakdown
-  Header.tsx           Site-wide top navigation
+  CostCalculator.tsx   Home page: hero with the vehicle form, then the results
+  CompareCalculator.tsx /compare: two vehicle forms, verdict banner, side-by-side results
+  VehicleFormFields.tsx Vehicle-details fields shared by both calculators
+  ResultSummary.tsx    Dark result banner (total, confidence, PDF download)
+  EstimateTotal.tsx    Total-cost figure + confidence meter, used by both calculators
+  CostBreakdownBars.tsx Stacked bar + ranked rows for the cost breakdown
+  CommonProblems.tsx   Common engine problems list with severity
+  MarketValueCard.tsx  Average market value (card and compact variants)
+  PriceEvolutionChart.tsx 5-year price line chart (SVG, with table view)
+  SectionCard.tsx      Standard results card with icon + title header
+  PageHero.tsx         Dark page-title band used by every secondary page
+  CtaBanner.tsx        Closing call-to-action band on content pages
+  Header.tsx           Site-wide top navigation (active-page aware)
   AccountNav.tsx        Top-right auth controls (login/signup, or account + logout)
   RequireAuth.tsx       Client-side route guard for protected pages
   AuthFormField.tsx     Shared field wrapper for the login/signup forms
   Footer.tsx           Site-wide footer
   icons.tsx            Small inline SVG icon set used across the UI
+design-system/
+  smartcarcompare/MASTER.md  Design system: tokens, type, components, rules
 lib/
   api.ts               Typed fetch wrapper around the backend's /api/estimate endpoint
   auth-api.ts          Typed fetch wrappers around the auth-service endpoints
   auth-context.tsx     In-memory auth state (React context) + login/signup/logout
   calculator-logic.ts  Shared types/constants (fuel types, currency formatting)
+  vehicle-form.ts      Vehicle form state + request builders shared by both calculators
 public/                Static assets (default Next.js icons)
 ```
 

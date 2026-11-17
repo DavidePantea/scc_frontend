@@ -24,7 +24,7 @@ export default function RequireSeller({ children }: { children: ReactNode }) {
   if (status !== 'authenticated' || !user || user.accountType !== 'seller') {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <LoaderIcon className="h-6 w-6 animate-spin text-[#2563EB]" />
+        <LoaderIcon className="h-6 w-6 animate-spin text-brand" />
       </div>
     );
   }
