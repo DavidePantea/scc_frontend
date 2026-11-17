@@ -40,6 +40,8 @@ app/
   signup/page.tsx      Signup form, calls auth-service directly
   account/page.tsx     Protected landing page: account info, guarded by RequireAuth
   globals.css          Design tokens (@theme) and component classes (.card, .btn, .input, ...)
+  articole/            Articles index and /articole/[slug] pages (static, with SEO metadata)
+  sitemap.ts, robots.ts  Generated /sitemap.xml and /robots.txt
 components/
   CostCalculator.tsx   Home page: hero with the vehicle form, then the results
   CompareCalculator.tsx /compare: two vehicle forms, verdict banner, side-by-side results
@@ -59,6 +61,7 @@ components/
   AuthFormField.tsx     Shared field wrapper for the login/signup forms
   Footer.tsx           Site-wide footer
   icons.tsx            Small inline SVG icon set used across the UI
+  articles/            Article card, index, article view and home-page teaser
 design-system/
   smartcarcompare/MASTER.md  Design system: tokens, type, components, rules
 lib/
@@ -67,6 +70,8 @@ lib/
   auth-context.tsx     In-memory auth state (React context) + login/signup/logout
   calculator-logic.ts  Shared types/constants (fuel types, currency formatting)
   vehicle-form.ts      Vehicle form state + request builders shared by both calculators
+  articles.ts          Article content (RO + EN) and helpers
+  site.ts              Public site URL used for canonical links and the sitemap
 public/                Static assets (default Next.js icons)
 ```
 
@@ -94,6 +99,7 @@ Open [http://localhost:3000](http://localhost:3000).
 |---|---|
 | `NEXT_PUBLIC_API_URL` | Base URL of the backend estimation API (no trailing slash), e.g. `https://your-backend.example.com` |
 | `NEXT_PUBLIC_AUTH_API_URL` | Base URL of the standalone auth-service (no trailing slash), e.g. `https://your-auth-service.example.com` |
+| `NEXT_PUBLIC_SITE_URL` | Public URL of this site (no trailing slash), used for canonical links, `sitemap.xml`, `robots.txt` and structured data. Falls back to Vercel's production domain if unset. |
 
 Copy `.env.example` to `.env` and fill in a real value for local development:
 
@@ -107,6 +113,27 @@ Note: because this variable is prefixed with `NEXT_PUBLIC_`, Next.js bundles
 it into the client-side JavaScript by design, so it is visible to anyone
 using the site. It should only ever hold a public backend URL, never a
 secret or API key — those stay server-side in the backend service.
+
+## Articles (SEO content)
+
+`/articole` lists guides about the real cost of owning a car, and each guide
+lives at `/articole/<slug>`. They are statically generated and
+server-rendered in Romanian (the indexed language); the language toggle
+switches the text to English in the browser. Each article page ships a
+canonical URL, Open Graph tags and `Article` + `BreadcrumbList` JSON-LD.
+`app/sitemap.ts` and `app/robots.ts` generate `/sitemap.xml` and
+`/robots.txt`.
+
+To add an article, append an entry to `ARTICLES` in `lib/articles.ts` with a
+Romanian slug, both `ro` and `en` content (headings, paragraphs, lists,
+tables and calculator/compare call-to-action blocks), and `published` /
+`updated` dates. It is picked up automatically by the index page, the home
+page teaser, related-article links and the sitemap. Keep figures as clearly
+labelled, rounded ranges: fuel prices, insurance and local taxes change
+often.
+
+After deploying, submit `https://<your-domain>/sitemap.xml` in Google Search
+Console.
 
 ## Authentication
 

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/lib/auth-context";
 import { LanguageProvider } from "@/lib/language-context";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 // latin-ext carries the Romanian diacritics (ă, â, î, ș, ț).
 const bricolage = Bricolage_Grotesque({
@@ -20,8 +21,17 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SmartCarCompare",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
   description: "Compară costul total de utilizare și descoperă cât de avantajos este să conduci un vehicul nou.",
+  openGraph: {
+    siteName: SITE_NAME,
+    locale: "ro_RO",
+    type: "website",
+  },
   verification: {
     google: "P37NoUlD80XBLksPar0dvjFxLT2ZX-vaSwAv8onl3_A",
   },

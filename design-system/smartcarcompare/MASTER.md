@@ -121,6 +121,14 @@ chart → per-side columns.
 
 **Content pages** — `PageHero` with eyebrow → card grid → `CtaBanner`.
 
+**Articles (`/articole`)** — `PageHero` → card grid with the newest article
+featured (spanning two columns) → `CtaBanner`. An article page has a dark
+header (breadcrumb, category, H1, description, author/date/read time), a
+body column limited to about 70 characters per line (17px / 32px line
+height), a sticky sidebar from `lg` up (table of contents + calculator
+card), an inline dark CTA block, a disclaimer and three related articles.
+Whole cards are clickable through a stretched link on the title.
+
 **Auth & account** — the form card overlaps the hero; errors appear inline
 with `role="alert"`.
 
@@ -136,6 +144,7 @@ with `role="alert"`.
 - [x] Text contrast ≥ 4.5:1 (orange buttons use ink text; blue on dark uses `brand-on-dark`)
 - [x] Visible focus rings on every interactive element
 - [x] Touch targets ≥ 44px (nav menu button, buttons, mobile menu rows)
+- [x] Desktop nav only from `xl` (1280px); below that the menu button is used, so nothing overflows
 - [x] Active nav item marked with `aria-current="page"`
 - [x] Decorative SVG icons `aria-hidden`
 - [x] Colour never the only signal (severity, chart series, confidence)

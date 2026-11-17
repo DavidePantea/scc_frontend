@@ -517,6 +517,37 @@ export const translations = {
   'compare.costsLessPrefix': { ro: 'costă cu', en: 'costs' },
   'compare.costsLessSuffix': { ro: 'mai puțin', en: 'less' },
   'compare.similar': { ro: 'Costurile estimate sunt practic identice.', en: 'The estimated costs are practically identical.' },
+
+  // Articles section
+  'nav.articles': { ro: 'Articole', en: 'Articles' },
+  'articles.heroTitle': { ro: 'Costul real al unei mașini, explicat', en: 'The real cost of a car, explained' },
+  'articles.heroSubtitle': {
+    ro: 'Ghiduri practice despre combustibil, asigurări, reparații și pierderea de valoare, ca să știi dinainte cât te costă o mașină.',
+    en: 'Practical guides to fuel, insurance, repairs and depreciation, so you know in advance what a car will cost you.',
+  },
+  'articles.readMore': { ro: 'Citește articolul', en: 'Read the article' },
+  'articles.minRead': { ro: 'min de citit', en: 'min read' },
+  'articles.updated': { ro: 'Actualizat', en: 'Updated' },
+  'articles.by': { ro: 'Echipa SmartCarCompare', en: 'The SmartCarCompare team' },
+  'articles.all': { ro: 'Toate articolele', en: 'All articles' },
+  'articles.related': { ro: 'Citește și', en: 'Keep reading' },
+  'articles.onThisPage': { ro: 'În acest articol', en: 'In this article' },
+  'articles.homeTitle': { ro: 'Ghiduri despre costul real al mașinilor', en: 'Guides to the real cost of cars' },
+  'articles.disclaimer': {
+    ro: 'Cifrele din acest articol sunt orientative, rotunjite și au scop informativ; nu constituie consultanță financiară. Prețurile la combustibil, asigurări și taxele locale se schimbă, așa că verifică valorile actuale înainte de o decizie.',
+    en: 'The figures in this article are indicative, rounded and for information only; they are not financial advice. Fuel prices, insurance and local taxes change, so check current values before making a decision.',
+  },
+  'articles.ctaCalculatorTitle': { ro: 'Află cât te costă mașina ta', en: 'Find out what your car costs you' },
+  'articles.ctaCalculatorDesc': {
+    ro: 'Introdu marca, modelul, anul și kilometrajul și primești costul anual estimat, defalcat pe categorii.',
+    en: 'Enter the make, model, year and mileage and get the estimated yearly cost, broken down by category.',
+  },
+  'articles.ctaCompareTitle': { ro: 'Compară două mașini cap la cap', en: 'Compare two cars head to head' },
+  'articles.ctaCompareDesc': {
+    ro: 'Vezi costul anual al fiecăreia și cât economisești alegând una dintre ele.',
+    en: 'See each one’s yearly cost and how much you save by choosing one of them.',
+  },
+  'articles.breadcrumbHome': { ro: 'Acasă', en: 'Home' },
 } as const satisfies Record<string, Record<Language, string>>;
 
 export type TranslationKey = keyof typeof translations;
