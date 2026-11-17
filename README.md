@@ -135,6 +135,20 @@ often.
 After deploying, submit `https://<your-domain>/sitemap.xml` in Google Search
 Console.
 
+## Security headers and dependency overrides
+
+`next.config.ts` sends security headers on every route: anti-framing
+(`frame-ancestors 'none'` + `X-Frame-Options: DENY`), `nosniff`, a strict
+referrer policy, a permissions policy, HSTS, and no `X-Powered-By`. The CSP is
+deliberately limited to directives that can't break the page; a full
+`script-src` allowlist would need nonces and every AdSense domain.
+
+`package.json` → `pnpm.overrides` pins patched versions of a few transitive
+dependencies (DOMPurify under jsPDF, plus PostCSS/nanoid/source-map-js and
+some lint tooling), each kept within its current major version. Run
+`pnpm audit` after upgrading Next.js or jsPDF and drop any override the new
+release makes unnecessary.
+
 ## Authentication
 
 Login/signup/session logic lives entirely in a separate `auth-service`
